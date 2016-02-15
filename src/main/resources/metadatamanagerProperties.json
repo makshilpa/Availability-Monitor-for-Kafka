@@ -1,0 +1,13 @@
+{
+  "brokerList": [
+    "broker1:port",
+    "broker2:port"
+  ],
+  "useWhiteList": false,
+  "soTimeout": 100000,
+  "bufferSize": 65536,
+  "clientId": "test",
+  "zooKeeperHosts": "1.1.1.1:2181,2.2.2.2:2181",
+  "useZooKeeper": true,
+  "acceptable_exception_count":5
+}

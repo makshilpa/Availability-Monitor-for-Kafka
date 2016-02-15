@@ -1,0 +1,9 @@
+{
+  "sqlConnectionString": "jdbc:sqlserver://test;DatabaseName=test;lockTimeout=30000;loginTimeout=30000;user=test;password=test",
+  "reportToSql": true,
+  "reportToSlf4j": true,
+  "reportToConsole": false,
+  "reportToCsv": false,
+  "reportToJmx": false
+  //"csvDirectory": ""
+}

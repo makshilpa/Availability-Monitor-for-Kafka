@@ -1,0 +1,4 @@
+{
+  "serializer_class": "kafka.serializer.StringEncoder",
+  "request_required_acks":1
+}
