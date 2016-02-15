@@ -8,14 +8,16 @@ Consumer Availability is defined as (Number of successfull tail data reads accro
 1. Clone the repository locally
 Git clone
 
-2. Change the resource file(s)
-KafkaAvailability / src / main / resources / metadatamanagerProperties.json and add your zookeeperhost ip and ports
+2. Change the resource file(s) `KafkaAvailability / src / main / resources / metadatamanagerProperties.json` and add your zookeeperhost ip and ports
 	```
 	"zooKeeperHosts": "1.1.1.1:2181,2.2.2.2:2181",
 	```
-KafkaAvailability / src / main / resources / log4j.properties
-KafkaAvailability / src / main / resources / appProperties.json
-3. If using precompiled jar, inject the modified resource file into the jar:
+Also modify the following files to set up SQL/CSV/SLF4J/JMX reporting 
+	```
+	KafkaAvailability / src / main / resources / log4j.properties
+	KafkaAvailability / src / main / resources / appProperties.json
+	```
+3. If using precompiled jar, inject the modified resource file(s) into the jar
 	```
 	jar uf KafkaAvailability-1.0-SNAPSHOT-jar-with-dependencies.jar metadatamanagerProperties.json
 	```
@@ -23,7 +25,7 @@ If assembling jar from source, if you want to report metrics to MS SQL Server, y
 Visit the MSDN site for SQL Server and download the latest version of the JDBC driver for your operating system.
 Unzip the package
 Open a command prompt and switch into the expanded directory where the jar file is located.
-Execute the following command. Be sure to modify the jar file name and version as necessary:
+Execute the following command. Be sure to modify the jar file name and version as necessary
 	```
 	mvn install:install-file -Dfile=sqljdbc4.jar -Dpackaging=jar -DgroupId=com.microsoft.sqlserver -DartifactId=sqljdbc4 -Dversion=4.0
 	```
@@ -35,7 +37,6 @@ Finally, assemble jar using maven:
 	```
 	java.exe -jar KafkaAvailability-1.0-SNAPSHOT-jar-with-dependencies.jar -c ClusterName
 	```
-5. If you want to report metrics to SQL Server, put the connection string in KafkaAvailability / src / main / resources / AppProperties.json
 
 
 ## Other Documentation
