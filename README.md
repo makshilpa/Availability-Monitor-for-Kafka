@@ -15,7 +15,6 @@ KafkaAvailability / src / main / resources / metadatamanagerProperties.json and 
 ```
 KafkaAvailability / src / main / resources / log4j.properties
 KafkaAvailability / src / main / resources / appProperties.json
-
 3. If using precompiled jar, inject the modified resource file into the jar:
 ```
 jar uf KafkaAvailability-1.0-SNAPSHOT-jar-with-dependencies.jar metadatamanagerProperties.json
@@ -32,20 +31,20 @@ Finally, assemble jar using maven:
 ```
 mvn clean compile assembly:single
 ```
-
 4. Run the assembled jar like this:
 ```
 java.exe -jar KafkaAvailability-1.0-SNAPSHOT-jar-with-dependencies.jar -c ClusterName
 ```
+5. If you want to report metrics to SQL Server, put the connection string in 
+KafkaAvailability / src / main / resources / AppProperties.json
 
 
+## Other Documentation
 
-## Documentation
-
-Refer to JavaDoc
+Please refer to JavaDoc for detailed code documentation.
 
 ## License
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg?style=plastic)](https://github.com/Microsoft/SparkCLR/blob/master/LICENSE.txt)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg?style=plastic)](https://github.com/Microsoft/Kafka-Availability-Monitor/blob/master/LICENSE.txt)
 
 Kafka Availability Monitor is licensed under the MIT license. See [LICENSE](LICENSE) file for full license information.
