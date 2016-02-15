@@ -7,7 +7,7 @@ Consumer Availability is defined as (Number of successfull tail data reads accro
 ## Usage
 1. Clone the repository locally
 	```
-	Git clone https://github.com/Microsoft/Kafka-Availability-Monitor.git
+	git clone https://github.com/Microsoft/Kafka-Availability-Monitor.git
 	```
 
 2. Change the resource file(s) `KafkaAvailability / src / main / resources / metadatamanagerProperties.json` and add your zookeeperhost ip and ports
