@@ -31,6 +31,7 @@ Visit the MSDN site for SQL Server and download the latest version of the JDBC d
 	mvn install:install-file -Dfile=sqljdbc4.jar -Dpackaging=jar -DgroupId=com.microsoft.sqlserver -DartifactId=sqljdbc4 -Dversion=4.0
 	
 	```
+If you are not interested in SQL Server reporting, please remove the dependency on com.microsoft.sqlserver from the pom file before assembling the jar.
 Finally, assemble jar using maven:
 	```
 	mvn clean compile assembly:single
