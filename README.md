@@ -2,7 +2,7 @@
 
 Kafka Availability monitor allows you to monitor the end to end availability and latency for sending and reading data from Kafka.
 Producer Availability is defined as (Number of successful message sends accross all Topics and Partitions)/(Number of message send attempts)
-Consumer Availability is defined as (Number of successfull tail data reads accross all Topics and Partitions)/(Number of message send attempts)
+Consumer Availability is defined as (Number of successfull tail data reads accross all Topics and Partitions)/(Number of read attempts)
 
 ## Usage
 1. Clone the repository locally
