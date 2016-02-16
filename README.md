@@ -4,6 +4,10 @@ Kafka Availability monitor allows you to monitor the end to end availability and
 Producer Availability is defined as (Number of successful message sends accross all Topics and Partitions)/(Number of message send attempts)
 Consumer Availability is defined as (Number of successfull tail data reads accross all Topics and Partitions)/(Number of read attempts)
 
+The tool measures Producer availability and latency by sending canary messages to all partitions. The message prefix is "CanaryMessage_" and can be changed in the producerProperties.json resource file.
+The tool measures Consumer availability and latency by reading data from the tail of all partitions.
+
+
 ## Usage
 1. Clone the repository locally
 	```
@@ -14,7 +18,7 @@ Consumer Availability is defined as (Number of successfull tail data reads accro
 	```
 	"zooKeeperHosts": "1.1.1.1:2181,2.2.2.2:2181",
 	```
-Also modify the following files to set up SQL/CSV/SLF4J/JMX reporting 
+Also modify the following files to set up SQL/CSV/SLF4J/JMX reporting. The frequency of sending canary messages, reading tail data and the frequency of reporting are all controlled by the commandline argument "sleep" in milliseconds. The default value is 3000 milliseconds (ie. 5 mins).
 	```
 	KafkaAvailability / src / main / resources / log4j.properties
 	KafkaAvailability / src / main / resources / appProperties.json
@@ -43,8 +47,42 @@ Finally, assemble jar using maven:
 	java.exe -jar KafkaAvailability-1.0-SNAPSHOT-jar-with-dependencies.jar -c ClusterName
 	
 	```
-
-
+5. If you are logging to SQL Server, create tables in your db with the following names:
+	```
+	[dbo].[Consumer.Availability]
+	[dbo].[Consumer.Latency]
+	[dbo].[Consumer.Topic.Latency]
+	[dbo].[Consumer.Partition.Latency]
+	[dbo].[Producer.Availability]
+	[dbo].[Producer.Latency]
+	[dbo].[Producer.Topic.Latency]
+	[dbo].[Producer.Partition.Latency]
+	```
+The availability and latency tables have the following schemas:
+	```
+	CREATE TABLE [dbo].[Consumer.Availability](
+		[Environment] [varchar](100) NOT NULL,
+		[Timestamp] [datetime] NOT NULL,
+		[Tag] [varchar](100) NOT NULL,
+		[Availability] [float] NOT NULL
+	)
+	CREATE TABLE [dbo].[Consumer.Latency](
+		[Environment] [varchar](100) NOT NULL,
+		[Timestamp] [datetime] NOT NULL,
+		[Tag] [varchar](100) NOT NULL,
+		[count] [float] NOT NULL,
+		[max] [float] NOT NULL,
+		[mean] [float] NOT NULL,
+		[min] [float] NOT NULL,
+		[stddev] [float] NOT NULL,
+		[median] [float] NOT NULL,
+		[75perc] [float] NOT NULL,
+		[95perc] [float] NOT NULL,
+		[98perc] [float] NOT NULL,
+		[99perc] [float] NOT NULL,
+		[999perc] [float] NOT NULL	
+	)
+	```
 ## Other Documentation
 
 Please refer to JavaDoc for detailed code documentation.
