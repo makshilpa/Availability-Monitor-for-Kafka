@@ -44,41 +44,41 @@ Finally, assemble jar using maven:
 		java.exe -jar KafkaAvailability-1.0-SNAPSHOT-jar-with-dependencies.jar -c ClusterName
 	```
 5. If you are logging to SQL Server, create tables in your db with the following names:
-	```
-		[dbo].[Consumer.Availability]
-		[dbo].[Consumer.Latency]
-		[dbo].[Consumer.Topic.Latency]
-		[dbo].[Consumer.Partition.Latency]
-		[dbo].[Producer.Availability]
-		[dbo].[Producer.Latency]
-		[dbo].[Producer.Topic.Latency]
-		[dbo].[Producer.Partition.Latency]
-	```
+```
+	[dbo].[Consumer.Availability]
+	[dbo].[Consumer.Latency]
+	[dbo].[Consumer.Topic.Latency]
+	[dbo].[Consumer.Partition.Latency]
+	[dbo].[Producer.Availability]
+	[dbo].[Producer.Latency]
+	[dbo].[Producer.Topic.Latency]
+	[dbo].[Producer.Partition.Latency]
+```
 The availability and latency tables have the following schemas:
-	```
-		CREATE TABLE [dbo].[Consumer.Availability](
-			[Environment] [varchar](100) NOT NULL,
-			[Timestamp] [datetime] NOT NULL,
-			[Tag] [varchar](100) NOT NULL,
-			[Availability] [float] NOT NULL
-		)
-		CREATE TABLE [dbo].[Consumer.Latency](
-			[Environment] [varchar](100) NOT NULL,
-			[Timestamp] [datetime] NOT NULL,
-			[Tag] [varchar](100) NOT NULL,
-			[count] [float] NOT NULL,
-			[max] [float] NOT NULL,
-			[mean] [float] NOT NULL,
-			[min] [float] NOT NULL,
-			[stddev] [float] NOT NULL,
-			[median] [float] NOT NULL,
-			[75perc] [float] NOT NULL,
-			[95perc] [float] NOT NULL,
-			[98perc] [float] NOT NULL,
-			[99perc] [float] NOT NULL,
-			[999perc] [float] NOT NULL
-		)
-	```
+```
+	CREATE TABLE [dbo].[Consumer.Availability](
+	    [Environment] [varchar](100) NOT NULL,
+		[Timestamp] [datetime] NOT NULL,
+		[Tag] [varchar](100) NOT NULL,
+		[Availability] [float] NOT NULL
+	)
+	CREATE TABLE [dbo].[Consumer.Latency](
+		[Environment] [varchar](100) NOT NULL,
+		[Timestamp] [datetime] NOT NULL,
+		[Tag] [varchar](100) NOT NULL,
+		[count] [float] NOT NULL,
+		[max] [float] NOT NULL,
+		[mean] [float] NOT NULL,
+		[min] [float] NOT NULL,
+		[stddev] [float] NOT NULL,
+		[median] [float] NOT NULL,
+		[75perc] [float] NOT NULL,
+		[95perc] [float] NOT NULL,
+		[98perc] [float] NOT NULL,
+		[99perc] [float] NOT NULL,
+		[999perc] [float] NOT NULL
+	)
+```
 ## Other Documentation
 
 Please refer to JavaDoc for detailed code documentation.
