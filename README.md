@@ -89,10 +89,11 @@ CREATE TABLE [dbo].[Errors](
 	[MESSAGE] [varchar](max) NOT NULL
 )
 ```
+## Community
+* The Kafka-Availability-Monitor project welcomes contributions. To contribute, follow the instructions in [CONTRIBUTING.md](CONTRIBUTING.md)
 
-## Other Documentation
-
-Please refer to JavaDoc for detailed code documentation.
+* Options to ask your question to the Kafka-Availability-Monitor community
+  * create issue on [GitHub](https://github.com/Microsoft/Kafka-Availability-Monitor)
 
 ## License
 
