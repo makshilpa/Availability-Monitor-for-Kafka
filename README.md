@@ -79,6 +79,17 @@ The availability and latency tables have the following schemas:
 		[999perc] [float] NOT NULL
 	)
 ```
+Errors can be logged using log4j (configure log4j.properties under resources) with this schema:
+```
+CREATE TABLE [dbo].[Errors](
+	[USER_ID] [varchar](100) NOT NULL,
+	[DATED] [datetime] NOT NULL,
+	[LOGGER] [varchar](100) NOT NULL,
+	[LEVEL] [varchar](100) NOT NULL,
+	[MESSAGE] [varchar](max) NOT NULL
+)
+```
+
 ## Other Documentation
 
 Please refer to JavaDoc for detailed code documentation.
