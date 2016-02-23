@@ -300,7 +300,7 @@ public class SqlReporter extends ScheduledReporter
             con = DriverManager.getConnection(connectionUrl);
             System.out.println("Connected.");
 
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
 
             // Create and execute an SQL statement that returns some data.
