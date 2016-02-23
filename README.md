@@ -97,6 +97,6 @@ CREATE TABLE [dbo].[Errors](
 
 ## License
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg?style=plastic)](https://github.com/Microsoft/vailability-Monitor-for-Kafka/blob/master/LICENCE.txt)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg?style=plastic)](https://github.com/Microsoft/Availability-Monitor-for-Kafka/blob/master/LICENCE.txt)
 
-Availability Monitor for Kafka is licensed under the MIT license. See [LICENSE](https://github.com/Microsoft/vailability-Monitor-for-Kafka/blob/master/LICENCE.txt) file for full license information.
+Availability Monitor for Kafka is licensed under the MIT license. See [LICENSE](https://github.com/Microsoft/Availability-Monitor-for-Kafka/blob/master/LICENCE.txt) file for full license information.
