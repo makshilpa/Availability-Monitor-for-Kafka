@@ -3,9 +3,9 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //*********************************************************
 
-package Microsoft.KafkaAvailability;
+package com.microsoft.kafkaavailability;
 
-import Microsoft.KafkaAvailability.Properties.ConsumerProperties;
+import com.microsoft.kafkaavailability.properties.ConsumerProperties;
 import kafka.api.FetchRequest;
 import kafka.api.FetchRequestBuilder;
 import kafka.api.PartitionOffsetRequestInfo;

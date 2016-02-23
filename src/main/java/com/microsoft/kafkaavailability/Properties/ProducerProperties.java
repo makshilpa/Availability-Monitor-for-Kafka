@@ -5,13 +5,13 @@
 /**
  * Created by Akshat Kaul
  */
-package Microsoft.KafkaAvailability.Properties;
 
-public class ConsumerProperties
+package com.microsoft.kafkaavailability.properties;
+
+public class ProducerProperties
 {
-    public int maxReads;
-    public int port;
-    public int fetchSize;
-    public int bufferSize;
-    public int soTimeout;
+    public String serializer_class;
+    public String partitioner_class;
+    public Integer request_required_acks;
+    public String messageStart;
 }

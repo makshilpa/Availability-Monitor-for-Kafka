@@ -2,8 +2,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>Microsoft</groupId>
-    <artifactId>KafkaAvailability</artifactId>
+    <groupId>com.microsoft.kafkaavailability</groupId>
+    <artifactId>kafkaavailability</artifactId>
     <version>1.0-SNAPSHOT</version>
     <build>
         <plugins>
@@ -15,7 +15,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>Microsoft.KafkaAvailability.App</mainClass>
+                            <mainClass>com.microsoft.kafkaavailability.App</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -98,4 +98,18 @@
             <version>19.0</version>
         </dependency>
     </dependencies>
+    <developers>
+        <developer>
+            <id>akkaul</id>
+            <name>Akshat Kaul</name>
+            <email>akkaul@microsoft.com</email>
+            <organization>Microsoft</organization>
+            <organizationUrl>http://www.microsoft.com</organizationUrl>
+            <roles>
+                <role>owner</role>
+                <role>developer</role>
+            </roles>
+            <timezone>-8</timezone>
+        </developer>
+    </developers>
 </project>

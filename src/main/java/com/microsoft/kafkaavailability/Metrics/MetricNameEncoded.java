@@ -3,10 +3,16 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //*********************************************************
 
+package com.microsoft.kafkaavailability.metrics;
 
-package Microsoft.KafkaAvailability;
-
-public interface IPropertiesManager<T>
+public class MetricNameEncoded
 {
-    T getProperties();
+    public String name;
+    public String tag;
+    public MetricNameEncoded(String name, String tag)
+    {
+        this.name = name;
+        this.tag = tag;
+    }
 }
+

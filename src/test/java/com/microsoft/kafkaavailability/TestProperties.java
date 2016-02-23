@@ -3,9 +3,11 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //*********************************************************
 
-package Microsoft.KafkaAvailability;
+package com.microsoft.kafkaavailability;
 
-public interface IConsumer
+public class TestProperties
 {
-    void ConsumeFromTopicPartition(String a_topic, int a_partition) throws Exception;
+    public String serializer_class;
+    public String partitioner_class;
+    public Integer request_required_acks;
 }

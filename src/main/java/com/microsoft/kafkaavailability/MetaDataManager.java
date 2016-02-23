@@ -4,10 +4,9 @@
 //*********************************************************
 
 
-package Microsoft.KafkaAvailability;
+package com.microsoft.kafkaavailability;
 
-import Microsoft.KafkaAvailability.Properties.MetaDataManagerProperties;
-import com.google.common.reflect.Parameter;
+import com.microsoft.kafkaavailability.properties.MetaDataManagerProperties;
 import com.google.gson.Gson;
 import org.apache.zookeeper.KeeperException;
 import scala.Option;

@@ -3,14 +3,12 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //*********************************************************
 
-package Microsoft.KafkaAvailability;
+package com.microsoft.kafkaavailability;
 
-import Microsoft.KafkaAvailability.Properties.ProducerProperties;
+import com.microsoft.kafkaavailability.properties.ProducerProperties;
 import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
-import org.apache.zookeeper.KeeperException;
 
-import java.io.IOException;
 import java.util.Date;
 import java.util.Properties;
 

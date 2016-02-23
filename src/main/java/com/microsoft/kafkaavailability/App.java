@@ -3,17 +3,16 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //*********************************************************
 
-package Microsoft.KafkaAvailability;
+package com.microsoft.kafkaavailability;
 
-import Microsoft.KafkaAvailability.Metrics.AvailabilityGauge;
-import Microsoft.KafkaAvailability.Metrics.MetricNameEncoded;
-import Microsoft.KafkaAvailability.Metrics.SqlReporter;
-import Microsoft.KafkaAvailability.Properties.AppProperties;
-import Microsoft.KafkaAvailability.Properties.ConsumerProperties;
-import Microsoft.KafkaAvailability.Properties.MetaDataManagerProperties;
-import Microsoft.KafkaAvailability.Properties.ProducerProperties;
+import com.microsoft.kafkaavailability.metrics.AvailabilityGauge;
+import com.microsoft.kafkaavailability.metrics.MetricNameEncoded;
+import com.microsoft.kafkaavailability.metrics.SqlReporter;
+import com.microsoft.kafkaavailability.properties.AppProperties;
+import com.microsoft.kafkaavailability.properties.ConsumerProperties;
+import com.microsoft.kafkaavailability.properties.MetaDataManagerProperties;
+import com.microsoft.kafkaavailability.properties.ProducerProperties;
 import com.google.gson.Gson;
-import kafka.javaapi.TopicMetadata;
 import org.apache.commons.cli.*;
 import org.apache.log4j.MDC;
 import org.slf4j.Logger;
@@ -22,7 +21,6 @@ import com.codahale.metrics.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 

@@ -6,7 +6,7 @@
  * Created by Akshat Kaul
  */
 
-package Microsoft.KafkaAvailability.Properties;
+package com.microsoft.kafkaavailability.properties;
 
 import java.util.List;
 public class MetaDataManagerProperties

@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //*********************************************************
 
-package Microsoft.KafkaAvailability.Metrics;
+package com.microsoft.kafkaavailability.metrics;
 
 import com.codahale.metrics.*;
 import com.codahale.metrics.Timer;

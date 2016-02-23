@@ -3,9 +3,11 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //*********************************************************
 
-package Microsoft.KafkaAvailability;
 
-public interface IProducer
+package com.microsoft.kafkaavailability;
+
+public class BrokerInfo
 {
-    void SendCanaryToTopicPartition(String topicName, String partitionId);
+    String host;
+    int port;
 }
