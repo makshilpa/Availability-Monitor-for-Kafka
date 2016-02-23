@@ -2,12 +2,11 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //*********************************************************
-/**
- * Created by Akshat Kaul
- */
+
 package Microsoft.KafkaAvailability.Metrics;
 
 import com.codahale.metrics.*;
+import com.codahale.metrics.Timer;
 import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,9 +16,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.Locale;
-import java.util.Map;
-import java.util.SortedMap;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -302,8 +300,11 @@ public class SqlReporter extends ScheduledReporter
             con = DriverManager.getConnection(connectionUrl);
             System.out.println("Connected.");
 
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+            sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+
             // Create and execute an SQL statement that returns some data.
-            String SQL = String.format(String.format("insert into [dbo].[%s] values('%s','%s','%s',%s)", metricNameEncoded.name, userId, new java.sql.Timestamp(timestamp * 1000).toString(), metricNameEncoded.tag, line), values);
+            String SQL = String.format(String.format("insert into [dbo].[%s] values('%s','%s','%s',%s)", metricNameEncoded.name, userId, sdf.format(new Date(timestamp*1000)), metricNameEncoded.tag, line), values);
             stmt = con.createStatement();
             rs = stmt.executeQuery(SQL);
         } catch (Exception e)

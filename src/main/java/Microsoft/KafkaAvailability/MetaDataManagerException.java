@@ -1,8 +1,10 @@
+//*********************************************************
+// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+//*********************************************************
+
 package Microsoft.KafkaAvailability;
 
-/**
- * Created by akkaul on 2/11/2016.
- */
 public class MetaDataManagerException extends Exception
 {
     public MetaDataManagerException()

@@ -1,6 +1,6 @@
-<h1>Kafka Availability Monitor </h1>
+<h1>Availability Monitor for Kafka</h1>
 
-Kafka Availability monitor allows you to monitor the end to end availability and latency for sending and reading data from Kafka.
+Availability monitor for Kafka allows you to monitor the end to end availability and latency for sending and reading data from Kafka.
 Producer Availability is defined as (Number of successful message sends accross all Topics and Partitions)/(Number of message send attempts)
 Consumer Availability is defined as (Number of successfull tail data reads accross all Topics and Partitions)/(Number of read attempts)
 
@@ -11,7 +11,7 @@ The tool measures Consumer availability and latency by reading data from the tai
 ## Usage
 1. Clone the repository locally
 	```
-		git clone https://github.com/Microsoft/Kafka-Availability-Monitor.git
+		git clone https://github.com/Microsoft/Availability-Monitor-for-Kafka.git
 	```
 
 2. Change the resource file(s) `KafkaAvailability / src / main / resources / metadatamanagerProperties.json` and add your zookeeperhost ip and ports
@@ -90,13 +90,13 @@ CREATE TABLE [dbo].[Errors](
 )
 ```
 ## Community
-* The Kafka-Availability-Monitor project welcomes contributions. To contribute, follow the instructions in [CONTRIBUTING.md](CONTRIBUTING.md)
+* The Availability-Monitor-for-Kafka project welcomes contributions. To contribute, follow the instructions in [CONTRIBUTING.md](CONTRIBUTING.md)
 
-* Options to ask your question to the Kafka-Availability-Monitor community
-  * create issue on [GitHub](https://github.com/Microsoft/Kafka-Availability-Monitor)
+* Options to ask your question to the Availability-Monitor-for-Kafka community
+  * create issue on [GitHub](https://github.com/Microsoft/Availability-Monitor-for-Kafka)
 
 ## License
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg?style=plastic)](https://github.com/Microsoft/Kafka-Availability-Monitor/blob/master/LICENCE.txt)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg?style=plastic)](https://github.com/Microsoft/vailability-Monitor-for-Kafka/blob/master/LICENCE.txt)
 
-Kafka Availability Monitor is licensed under the MIT license. See [LICENSE](https://github.com/Microsoft/Kafka-Availability-Monitor/blob/master/LICENCE.txt) file for full license information.
+Availability Monitor for Kafka is licensed under the MIT license. See [LICENSE](https://github.com/Microsoft/vailability-Monitor-for-Kafka/blob/master/LICENCE.txt) file for full license information.
