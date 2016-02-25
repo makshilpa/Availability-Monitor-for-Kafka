@@ -153,7 +153,8 @@ public class App
         final SlidingWindowReservoir latency = new SlidingWindowReservoir(numPartitions);
         Histogram histogramProducerLatency = new Histogram(latency);
         MetricNameEncoded producerLatency = new MetricNameEncoded("Producer.Latency", "all");
-        metrics.register(new Gson().toJson(producerLatency), histogramProducerLatency);
+        if(appProperties.sendProducerLatency)
+            metrics.register(new Gson().toJson(producerLatency), histogramProducerLatency);
 
 
         for (kafka.javaapi.TopicMetadata item : metaDataManager.getAllTopicPartition())
@@ -163,7 +164,8 @@ public class App
             MetricNameEncoded producerTopicLatency = new MetricNameEncoded("Producer.Topic.Latency", item.topic());
             if (!metrics.getNames().contains(new Gson().toJson(producerTopicLatency)))
             {
-                metrics.register(new Gson().toJson(producerTopicLatency), histogramProducerTopicLatency);
+                if(appProperties.sendProducerTopicLatency)
+                    metrics.register(new Gson().toJson(producerTopicLatency), histogramProducerTopicLatency);
             }
 
             for (kafka.javaapi.PartitionMetadata part : item.partitionsMetadata())
@@ -172,7 +174,8 @@ public class App
                 Histogram histogramProducerPartitionLatency = new Histogram(new SlidingWindowReservoir(1));
                 if (!metrics.getNames().contains(new Gson().toJson(producerPartitionLatency)))
                 {
-                    metrics.register(new Gson().toJson(producerPartitionLatency),histogramProducerPartitionLatency);
+                    if(appProperties.sendProducerPartitionLatency)
+                        metrics.register(new Gson().toJson(producerPartitionLatency),histogramProducerPartitionLatency);
                 }
                 try
                 {
@@ -192,14 +195,16 @@ public class App
             }
         }
         MetricNameEncoded producerAvailability = new MetricNameEncoded("Producer.Availability", "all");
-        metrics.register(new Gson().toJson(producerAvailability), new AvailabilityGauge(producerTryCount, producerTryCount - producerFailCount));
+        if(appProperties.sendProducerAvailability)
+            metrics.register(new Gson().toJson(producerAvailability), new AvailabilityGauge(producerTryCount, producerTryCount - producerFailCount));
 
         int consumerTryCount = 0;
         int consumerFailCount = 0;
         Histogram histogramConsumerLatency = new Histogram(latency);
 
         MetricNameEncoded consumerLatency = new MetricNameEncoded("Consumer.Latency", "all");
-        metrics.register(new Gson().toJson(consumerLatency), histogramConsumerLatency);
+        if(appProperties.sendConsumerLatency)
+            metrics.register(new Gson().toJson(consumerLatency), histogramConsumerLatency);
 
         for (kafka.javaapi.TopicMetadata item : metaDataManager.getAllTopicPartition())
         {
@@ -208,7 +213,8 @@ public class App
             MetricNameEncoded consumerTopicLatency = new MetricNameEncoded("Consumer.Topic.Latency", item.topic());
             if (!metrics.getNames().contains(new Gson().toJson(consumerTopicLatency)))
             {
-                metrics.register(new Gson().toJson(consumerTopicLatency), histogramConsumerTopicLatency);
+                if(appProperties.sendConsumerTopicLatency)
+                    metrics.register(new Gson().toJson(consumerTopicLatency), histogramConsumerTopicLatency);
             }
 
             for (kafka.javaapi.PartitionMetadata part : item.partitionsMetadata())
@@ -217,7 +223,8 @@ public class App
                 Histogram histogramConsumerPartitionLatency = new Histogram(new SlidingWindowReservoir(1));
                 if (!metrics.getNames().contains(new Gson().toJson(consumerPartitionLatency)))
                 {
-                    metrics.register(new Gson().toJson(consumerPartitionLatency),histogramConsumerPartitionLatency);
+                    if(appProperties.sendConsumerPartitionLatency)
+                        metrics.register(new Gson().toJson(consumerPartitionLatency),histogramConsumerPartitionLatency);
                 }
                 try
                 {
@@ -237,6 +244,7 @@ public class App
             }
         }
         MetricNameEncoded consumerAvailability = new MetricNameEncoded("Consumer.Availability", "all");
-        metrics.register(new Gson().toJson(consumerAvailability), new AvailabilityGauge(consumerTryCount, consumerTryCount - consumerFailCount));
+        if(appProperties.sendConsumerAvailability)
+            metrics.register(new Gson().toJson(consumerAvailability), new AvailabilityGauge(consumerTryCount, consumerTryCount - consumerFailCount));
     }
 }

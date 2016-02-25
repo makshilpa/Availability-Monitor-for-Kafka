@@ -15,5 +15,13 @@ public class AppProperties
     public boolean reportToConsole;
     public boolean reportToCsv;
     public boolean reportToJmx;
+    public boolean sendProducerAvailability;
+    public boolean sendConsumerAvailability;
+    public boolean sendProducerLatency;
+    public boolean sendConsumerLatency;
+    public boolean sendProducerTopicLatency;
+    public boolean sendConsumerTopicLatency;
+    public boolean sendProducerPartitionLatency;
+    public boolean sendConsumerPartitionLatency;
     public String csvDirectory;
 }
