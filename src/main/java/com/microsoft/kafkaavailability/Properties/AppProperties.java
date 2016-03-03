@@ -10,6 +10,8 @@ package com.microsoft.kafkaavailability.properties;
 public class AppProperties
 {
     public String sqlConnectionString;
+    public boolean reportKafkaIPAvailability;
+    public String kafkaIP;
     public boolean reportToSql;
     public boolean reportToSlf4j;
     public boolean reportToConsole;

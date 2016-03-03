@@ -9,6 +9,15 @@ import com.microsoft.kafkaavailability.properties.ProducerProperties;
 import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
 
+import javax.net.ssl.*;
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
+import javax.net.ssl.SSLSocketFactory;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.Properties;
 
@@ -21,7 +30,7 @@ public class Producer implements IProducer
     private IMetaDataManager m_metaDataManager;
     private ProducerProperties producerProperties;
     private kafka.javaapi.producer.Producer<String, String> m_producer;
-
+    private static SSLSocketFactory m_sslSocketFactory = null;
     /***
      *
      * @param propManager Used to get properties from json file
@@ -72,4 +81,78 @@ public class Producer implements IProducer
         KeyedMessage<String, String> data = new KeyedMessage<String, String>(topicName, partitionId, msg);
         return data;
     }
+
+    public void SendCanaryToKafkaIP(String kafkaIP, boolean enableCertCheck) throws Exception
+    {
+        URL obj = new URL(kafkaIP);
+        HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
+        if( ! enableCertCheck ) {
+            setAcceptAllVerifier(con);
+        }
+        //add request header
+        con.setRequestMethod("POST");
+        con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
+        con.setRequestProperty( "Content-Type", "application/octet-stream");
+        con.setUseCaches(false);
+        String urlParameters = producerProperties.messageStart + new Date().getTime() + ",www.example.com,";
+        // Send post request
+        con.setDoOutput(true);
+        DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+        wr.writeBytes(urlParameters);
+        wr.flush();
+        wr.close();
+
+        int responseCode = con.getResponseCode();
+        System.out.println("\nSending 'POST' request to URL : " + kafkaIP);
+        System.out.println("Post parameters : " + urlParameters);
+        System.out.println("Response Code : " + responseCode);
+
+        BufferedReader in = new BufferedReader(
+                new InputStreamReader(con.getInputStream()));
+        String inputLine;
+        StringBuffer response = new StringBuffer();
+
+        while ((inputLine = in.readLine()) != null) {
+            response.append(inputLine);
+        }
+        in.close();
+        //print result
+        System.out.println(response.toString());
+
+    }
+    protected static void setAcceptAllVerifier(HttpsURLConnection connection) throws NoSuchAlgorithmException, KeyManagementException
+    {
+
+        // Create the socket factory.
+        // Reusing the same socket factory allows sockets to be
+        // reused, supporting persistent connections.
+        if( null == m_sslSocketFactory) {
+            SSLContext sc = SSLContext.getInstance("SSL");
+            sc.init(null, ALL_TRUSTING_TRUST_MANAGER, new java.security.SecureRandom());
+            m_sslSocketFactory = sc.getSocketFactory();
+        }
+
+        connection.setSSLSocketFactory(m_sslSocketFactory);
+
+        // Since we may be using a cert with a different name, we need to ignore
+        // the hostname as well.
+        connection.setHostnameVerifier(ALL_TRUSTING_HOSTNAME_VERIFIER);
+    }
+
+    private static final TrustManager[] ALL_TRUSTING_TRUST_MANAGER = new TrustManager[] {
+            new X509TrustManager() {
+                public X509Certificate[] getAcceptedIssuers() {
+                    return null;
+                }
+                public void checkClientTrusted(X509Certificate[] certs, String authType) {}
+                public void checkServerTrusted(X509Certificate[] certs, String authType) {}
+            }
+    };
+
+    private static final HostnameVerifier ALL_TRUSTING_HOSTNAME_VERIFIER  = new HostnameVerifier() {
+        public boolean verify(String hostname, SSLSession session) {
+            return true;
+        }
+    };
+
 }
