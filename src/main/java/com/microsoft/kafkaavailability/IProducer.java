@@ -8,4 +8,5 @@ package com.microsoft.kafkaavailability;
 public interface IProducer
 {
     void SendCanaryToTopicPartition(String topicName, String partitionId);
+    void SendCanaryToKafkaIP(String kafkaIP, String topicName, boolean enableCertCheck) throws Exception;
 }

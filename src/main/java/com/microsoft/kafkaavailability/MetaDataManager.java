@@ -164,7 +164,6 @@ public class MetaDataManager implements IMetaDataManager
         List<kafka.javaapi.TopicMetadata> ret = new ArrayList<TopicMetadata>();
         for (TopicMetadata item : data)
         {
-
             List<kafka.api.PartitionMetadata> pml = new ArrayList<kafka.api.PartitionMetadata>();
             for (PartitionMetadata part : item.partitionsMetadata())
             {
