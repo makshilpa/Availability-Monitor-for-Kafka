@@ -8,6 +8,8 @@ package com.microsoft.kafkaavailability;
 import com.microsoft.kafkaavailability.properties.ProducerProperties;
 import kafka.producer.KeyedMessage;
 import kafka.producer.ProducerConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.*;
 import java.io.BufferedReader;
@@ -27,6 +29,7 @@ import java.util.Properties;
 public class Producer implements IProducer
 {
     private IPropertiesManager<ProducerProperties> m_propManager;
+    final static Logger m_logger = LoggerFactory.getLogger(Producer.class);
     private IMetaDataManager m_metaDataManager;
     private ProducerProperties producerProperties;
     private kafka.javaapi.producer.Producer<String, String> m_producer;
@@ -40,7 +43,7 @@ public class Producer implements IProducer
     {
         m_metaDataManager = metaDataManager;
         m_propManager = propManager;
-        producerProperties = propManager.getProperties();
+        producerProperties = m_propManager.getProperties();
         Properties props = new Properties();
         String brokerList = "";
         for (String broker : m_metaDataManager.getBrokerList(true))
@@ -82,9 +85,17 @@ public class Producer implements IProducer
         return data;
     }
 
-    public void SendCanaryToKafkaIP(String kafkaIP, boolean enableCertCheck) throws Exception
+    /***
+     * Sends canary message to specified topic through kafkaIP
+     * @param kafkaIP kafkaIP
+     * @param topicName topic name
+     * @param enableCertCheck enable ssl certificate check. Not required if the tool trusts the kafka server
+     * @throws Exception
+     */
+
+    public void SendCanaryToKafkaIP(String kafkaIP, String topicName, boolean enableCertCheck) throws Exception
     {
-        URL obj = new URL(kafkaIP);
+        URL obj = new URL(kafkaIP + topicName);
         HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
         if( ! enableCertCheck ) {
             setAcceptAllVerifier(con);
@@ -103,9 +114,9 @@ public class Producer implements IProducer
         wr.close();
 
         int responseCode = con.getResponseCode();
-        System.out.println("\nSending 'POST' request to URL : " + kafkaIP);
-        System.out.println("Post parameters : " + urlParameters);
-        System.out.println("Response Code : " + responseCode);
+        m_logger.info("Sending 'POST' request to URL : " + kafkaIP);
+        m_logger.info("Post parameters : " + urlParameters);
+        m_logger.info("Response Code : " + responseCode);
 
         BufferedReader in = new BufferedReader(
                 new InputStreamReader(con.getInputStream()));
@@ -117,7 +128,7 @@ public class Producer implements IProducer
         }
         in.close();
         //print result
-        System.out.println(response.toString());
+        m_logger.info(response.toString());
 
     }
     protected static void setAcceptAllVerifier(HttpsURLConnection connection) throws NoSuchAlgorithmException, KeyManagementException

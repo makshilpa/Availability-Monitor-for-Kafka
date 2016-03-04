@@ -144,50 +144,53 @@ public class App
         IMetaDataManager metaDataManager = new MetaDataManager(metaDataPropertiesManager);
         IProducer producer = new Producer(producerPropertiesManager, metaDataManager);
         IConsumer consumer = new Consumer(consumerPropertiesManager, metaDataManager);
-        if(appProperties.reportKafkaIPAvailability)
-        {
-            MetricNameEncoded kafkaIPAvailability = new MetricNameEncoded("KafkaIP.Availability", "all");
-            try
-            {
-                producer.SendCanaryToKafkaIP(appProperties.kafkaIP, false);
-                m_metrics.register(new Gson().toJson(kafkaIPAvailability), new AvailabilityGauge(1,1));
-            } catch (Exception e)
-            {
-                m_metrics.register(new Gson().toJson(kafkaIPAvailability), new AvailabilityGauge(1,0));
-            }
-        }
 
-        int producerTryCount = 0;
-        int producerFailCount = 0;
+
+        int producerTryCount = 0, ipStatusTryCount = 0;
+        int producerFailCount = 0, ipStatusFailCount = 0;
         long startTime, endTime;
-
-        int numPartitions = metaDataManager.getAllTopicPartition().size();
+        int numPartitions = 0;
+        for (kafka.javaapi.TopicMetadata topic : metaDataManager.getAllTopicPartition())
+        {
+            numPartitions += topic.partitionsMetadata().size();
+        }
         final SlidingWindowReservoir latency = new SlidingWindowReservoir(numPartitions);
         Histogram histogramProducerLatency = new Histogram(latency);
         MetricNameEncoded producerLatency = new MetricNameEncoded("Producer.Latency", "all");
-        if(appProperties.sendProducerLatency)
+        if (appProperties.sendProducerLatency)
             m_metrics.register(new Gson().toJson(producerLatency), histogramProducerLatency);
-
 
         for (kafka.javaapi.TopicMetadata item : metaDataManager.getAllTopicPartition())
         {
+            if (appProperties.reportKafkaIPAvailability)
+            {
+                try
+                {
+                    ipStatusTryCount++;
+                    producer.SendCanaryToKafkaIP(appProperties.kafkaIP, item.topic(), false);
+                } catch (Exception e)
+                {
+                    ipStatusFailCount++;
+                    m_logger.error("Error Writing to Topic: {}; Exception: {}", item.topic(), e);
+                }
+            }
             final SlidingWindowReservoir topicLatency = new SlidingWindowReservoir(item.partitionsMetadata().size());
             Histogram histogramProducerTopicLatency = new Histogram(topicLatency);
             MetricNameEncoded producerTopicLatency = new MetricNameEncoded("Producer.Topic.Latency", item.topic());
             if (!m_metrics.getNames().contains(new Gson().toJson(producerTopicLatency)))
             {
-                if(appProperties.sendProducerTopicLatency)
+                if (appProperties.sendProducerTopicLatency)
                     m_metrics.register(new Gson().toJson(producerTopicLatency), histogramProducerTopicLatency);
             }
 
             for (kafka.javaapi.PartitionMetadata part : item.partitionsMetadata())
-            {                
+            {
                 MetricNameEncoded producerPartitionLatency = new MetricNameEncoded("Producer.Partition.Latency", item.topic() + part.partitionId());
                 Histogram histogramProducerPartitionLatency = new Histogram(new SlidingWindowReservoir(1));
                 if (!m_metrics.getNames().contains(new Gson().toJson(producerPartitionLatency)))
                 {
-                    if(appProperties.sendProducerPartitionLatency)
-                        m_metrics.register(new Gson().toJson(producerPartitionLatency),histogramProducerPartitionLatency);
+                    if (appProperties.sendProducerPartitionLatency)
+                        m_metrics.register(new Gson().toJson(producerPartitionLatency), histogramProducerPartitionLatency);
                 }
                 try
                 {
@@ -203,21 +206,27 @@ public class App
                     m_logger.error("Error Writing to Topic: {}; Partition: {}; Exception: {}", item.topic(), part.partitionId(), e);
                     producerFailCount++;
                 }
-
             }
         }
-        MetricNameEncoded producerAvailability = new MetricNameEncoded("Producer.Availability", "all");
-        if(appProperties.sendProducerAvailability)
+        if (appProperties.reportKafkaIPAvailability)
+        {
+            MetricNameEncoded kafkaIPAvailability = new MetricNameEncoded("KafkaIP.Availability", "all");
+            m_metrics.register(new Gson().toJson(kafkaIPAvailability), new AvailabilityGauge(ipStatusTryCount, ipStatusTryCount - ipStatusFailCount));
+        }
+        if (appProperties.sendProducerAvailability)
+        {
+            MetricNameEncoded producerAvailability = new MetricNameEncoded("Producer.Availability", "all");
             m_metrics.register(new Gson().toJson(producerAvailability), new AvailabilityGauge(producerTryCount, producerTryCount - producerFailCount));
-
+        }
         int consumerTryCount = 0;
         int consumerFailCount = 0;
         Histogram histogramConsumerLatency = new Histogram(latency);
 
-        MetricNameEncoded consumerLatency = new MetricNameEncoded("Consumer.Latency", "all");
-        if(appProperties.sendConsumerLatency)
+        if (appProperties.sendConsumerLatency)
+        {
+            MetricNameEncoded consumerLatency = new MetricNameEncoded("Consumer.Latency", "all");
             m_metrics.register(new Gson().toJson(consumerLatency), histogramConsumerLatency);
-
+        }
         for (kafka.javaapi.TopicMetadata item : metaDataManager.getAllTopicPartition())
         {
             final SlidingWindowReservoir topicLatency = new SlidingWindowReservoir(item.partitionsMetadata().size());
@@ -225,7 +234,7 @@ public class App
             MetricNameEncoded consumerTopicLatency = new MetricNameEncoded("Consumer.Topic.Latency", item.topic());
             if (!m_metrics.getNames().contains(new Gson().toJson(consumerTopicLatency)))
             {
-                if(appProperties.sendConsumerTopicLatency)
+                if (appProperties.sendConsumerTopicLatency)
                     m_metrics.register(new Gson().toJson(consumerTopicLatency), histogramConsumerTopicLatency);
             }
 
@@ -235,8 +244,8 @@ public class App
                 Histogram histogramConsumerPartitionLatency = new Histogram(new SlidingWindowReservoir(1));
                 if (!m_metrics.getNames().contains(new Gson().toJson(consumerPartitionLatency)))
                 {
-                    if(appProperties.sendConsumerPartitionLatency)
-                        m_metrics.register(new Gson().toJson(consumerPartitionLatency),histogramConsumerPartitionLatency);
+                    if (appProperties.sendConsumerPartitionLatency)
+                        m_metrics.register(new Gson().toJson(consumerPartitionLatency), histogramConsumerPartitionLatency);
                 }
                 try
                 {
@@ -252,11 +261,12 @@ public class App
                     m_logger.error("Error Reading from Topic: {}; Partition: {}; Exception: {}", item.topic(), part.partitionId(), e);
                     consumerFailCount++;
                 }
-
             }
         }
-        MetricNameEncoded consumerAvailability = new MetricNameEncoded("Consumer.Availability", "all");
-        if(appProperties.sendConsumerAvailability)
+        if (appProperties.sendConsumerAvailability)
+        {
+            MetricNameEncoded consumerAvailability = new MetricNameEncoded("Consumer.Availability", "all");
             m_metrics.register(new Gson().toJson(consumerAvailability), new AvailabilityGauge(consumerTryCount, consumerTryCount - consumerFailCount));
+        }
     }
 }
