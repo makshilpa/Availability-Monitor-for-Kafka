@@ -146,8 +146,8 @@ public class App
         IConsumer consumer = new Consumer(consumerPropertiesManager, metaDataManager);
 
 
-        int producerTryCount = 0, ipStatusTryCount = 0;
-        int producerFailCount = 0, ipStatusFailCount = 0;
+        int producerTryCount = 0, clusterIPStatusTryCount = 0, gtmIPStatusTryCount = 0;
+        int producerFailCount = 0, clusterIPStatusFailCount = 0, gtmIPStatusFailCount = 0;
         long startTime, endTime;
         int numPartitions = 0;
         for (kafka.javaapi.TopicMetadata topic : metaDataManager.getAllTopicPartition())
@@ -166,12 +166,21 @@ public class App
             {
                 try
                 {
-                    ipStatusTryCount++;
-                    producer.SendCanaryToKafkaIP(appProperties.kafkaIP, item.topic(), false);
+                    clusterIPStatusTryCount++;
+                    producer.SendCanaryToKafkaIP(appProperties.kafkaClusterIP, item.topic(), false);
                 } catch (Exception e)
                 {
-                    ipStatusFailCount++;
-                    m_logger.error("Error Writing to Topic: {}; Exception: {}", item.topic(), e);
+                    clusterIPStatusFailCount++;
+                    m_logger.error("ClusterIPStatus -- Error Writing to Topic: {}; Exception: {}", item.topic(), e);
+                }
+                try
+                {
+                    gtmIPStatusTryCount++;
+                    producer.SendCanaryToKafkaIP(appProperties.kafkaGTMIP, item.topic(), false);
+                } catch (Exception e)
+                {
+                    gtmIPStatusFailCount++;
+                    m_logger.error("GTMIPStatus -- Error Writing to Topic: {}; Exception: {}", item.topic(), e);
                 }
             }
             final SlidingWindowReservoir topicLatency = new SlidingWindowReservoir(item.partitionsMetadata().size());
@@ -210,8 +219,10 @@ public class App
         }
         if (appProperties.reportKafkaIPAvailability)
         {
-            MetricNameEncoded kafkaIPAvailability = new MetricNameEncoded("KafkaIP.Availability", "all");
-            m_metrics.register(new Gson().toJson(kafkaIPAvailability), new AvailabilityGauge(ipStatusTryCount, ipStatusTryCount - ipStatusFailCount));
+            MetricNameEncoded kafkaClusterIPAvailability = new MetricNameEncoded("KafkaIP.Availability", "all");
+            m_metrics.register(new Gson().toJson(kafkaClusterIPAvailability), new AvailabilityGauge(clusterIPStatusTryCount, clusterIPStatusTryCount - clusterIPStatusFailCount));
+            MetricNameEncoded kafkaGTMIPAvailability = new MetricNameEncoded("KafkaGTMIP.Availability", "all");
+            m_metrics.register(new Gson().toJson(kafkaGTMIPAvailability), new AvailabilityGauge(gtmIPStatusTryCount, gtmIPStatusTryCount - gtmIPStatusFailCount));
         }
         if (appProperties.sendProducerAvailability)
         {

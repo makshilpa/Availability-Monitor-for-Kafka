@@ -86,8 +86,8 @@ public class Producer implements IProducer
     }
 
     /***
-     * Sends canary message to specified topic through kafkaIP
-     * @param kafkaIP kafkaIP
+     * Sends canary message to specified topic through kafkaClusterIP
+     * @param kafkaIP kafkaClusterIP
      * @param topicName topic name
      * @param enableCertCheck enable ssl certificate check. Not required if the tool trusts the kafka server
      * @throws Exception
