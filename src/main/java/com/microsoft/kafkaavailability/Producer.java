@@ -30,13 +30,14 @@ public class Producer implements IProducer
 {
     private IPropertiesManager<ProducerProperties> m_propManager;
     final static Logger m_logger = LoggerFactory.getLogger(Producer.class);
+    private int m_vipRetries = 3;
     private IMetaDataManager m_metaDataManager;
     private ProducerProperties producerProperties;
     private kafka.javaapi.producer.Producer<String, String> m_producer;
     private static SSLSocketFactory m_sslSocketFactory = null;
+
     /***
-     *
-     * @param propManager Used to get properties from json file
+     * @param propManager     Used to get properties from json file
      * @param metaDataManager Used to get the broker list
      */
     public Producer(IPropertiesManager<ProducerProperties> propManager, IMetaDataManager metaDataManager) throws MetaDataManagerException
@@ -61,7 +62,8 @@ public class Producer implements IProducer
 
     /***
      * Sends the message to specified topic and partition
-     * @param topicName topic name
+     *
+     * @param topicName   topic name
      * @param partitionId partition id
      */
     @Override
@@ -73,7 +75,8 @@ public class Producer implements IProducer
     /***
      * Constructs the canary message to be sent.
      * The message is encoded with the topic and partition information to tell Kafka where it should land.
-     * @param topicName topic name
+     *
+     * @param topicName   topic name
      * @param partitionId partition id
      * @return
      */
@@ -87,8 +90,9 @@ public class Producer implements IProducer
 
     /***
      * Sends canary message to specified topic through kafkaClusterIP
-     * @param kafkaIP kafkaClusterIP
-     * @param topicName topic name
+     *
+     * @param kafkaIP         kafkaClusterIP
+     * @param topicName       topic name
      * @param enableCertCheck enable ssl certificate check. Not required if the tool trusts the kafka server
      * @throws Exception
      */
@@ -97,47 +101,70 @@ public class Producer implements IProducer
     {
         URL obj = new URL(kafkaIP + topicName);
         HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
-        if( ! enableCertCheck ) {
+        if (!enableCertCheck)
+        {
             setAcceptAllVerifier(con);
         }
-        //add request header
-        con.setRequestMethod("POST");
-        con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
-        con.setRequestProperty( "Content-Type", "application/octet-stream");
-        con.setUseCaches(false);
-        String urlParameters = producerProperties.messageStart + new Date().getTime() + ",www.example.com,";
-        // Send post request
-        con.setDoOutput(true);
-        DataOutputStream wr = new DataOutputStream(con.getOutputStream());
-        wr.writeBytes(urlParameters);
-        wr.flush();
-        wr.close();
 
-        int responseCode = con.getResponseCode();
-        m_logger.info("Sending 'POST' request to URL : " + kafkaIP);
-        m_logger.info("Post parameters : " + urlParameters);
-        m_logger.info("Response Code : " + responseCode);
+        for (int i = 0; i < m_vipRetries; i++)
+        {
+            try
+            {
 
-        BufferedReader in = new BufferedReader(
-                new InputStreamReader(con.getInputStream()));
-        String inputLine;
-        StringBuffer response = new StringBuffer();
+                //add request header
+                con.setRequestMethod("POST");
+                con.setConnectTimeout(5000);
+                con.setReadTimeout(10000);
+                con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
+                con.setRequestProperty("Content-Type", "application/octet-stream");
+                con.setUseCaches(false);
+                String urlParameters = producerProperties.messageStart + new Date().getTime() + ",www.example.com,";
+                System.out.println("Sending 'POST' request to URL : " + kafkaIP + topicName);
+                System.out.println("Post parameters : " + urlParameters);
 
-        while ((inputLine = in.readLine()) != null) {
-            response.append(inputLine);
+
+                // Send post request
+                con.setDoOutput(true);
+                DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+                wr.writeBytes(urlParameters);
+                wr.flush();
+                wr.close();
+
+                int responseCode = con.getResponseCode();
+
+                System.out.println("Response Code : " + responseCode);
+                BufferedReader in = new BufferedReader(
+                        new InputStreamReader(con.getInputStream()));
+                String inputLine;
+                StringBuffer response = new StringBuffer();
+
+
+                while ((inputLine = in.readLine()) != null)
+                {
+                    response.append(inputLine);
+                }
+                in.close();
+                //print result
+                System.out.println(response.toString());
+                break;
+            } catch (Exception e)
+            {
+                e.printStackTrace();
+                if (i == m_vipRetries)
+                    throw e;
+            }
         }
-        in.close();
-        //print result
-        m_logger.info(response.toString());
 
     }
+
     protected static void setAcceptAllVerifier(HttpsURLConnection connection) throws NoSuchAlgorithmException, KeyManagementException
     {
 
         // Create the socket factory.
         // Reusing the same socket factory allows sockets to be
         // reused, supporting persistent connections.
-        if( null == m_sslSocketFactory) {
+        if (null == m_sslSocketFactory)
+        {
             SSLContext sc = SSLContext.getInstance("SSL");
             sc.init(null, ALL_TRUSTING_TRUST_MANAGER, new java.security.SecureRandom());
             m_sslSocketFactory = sc.getSocketFactory();
@@ -150,18 +177,28 @@ public class Producer implements IProducer
         connection.setHostnameVerifier(ALL_TRUSTING_HOSTNAME_VERIFIER);
     }
 
-    private static final TrustManager[] ALL_TRUSTING_TRUST_MANAGER = new TrustManager[] {
-            new X509TrustManager() {
-                public X509Certificate[] getAcceptedIssuers() {
+    private static final TrustManager[] ALL_TRUSTING_TRUST_MANAGER = new TrustManager[]{
+            new X509TrustManager()
+            {
+                public X509Certificate[] getAcceptedIssuers()
+                {
                     return null;
                 }
-                public void checkClientTrusted(X509Certificate[] certs, String authType) {}
-                public void checkServerTrusted(X509Certificate[] certs, String authType) {}
+
+                public void checkClientTrusted(X509Certificate[] certs, String authType)
+                {
+                }
+
+                public void checkServerTrusted(X509Certificate[] certs, String authType)
+                {
+                }
             }
     };
 
-    private static final HostnameVerifier ALL_TRUSTING_HOSTNAME_VERIFIER  = new HostnameVerifier() {
-        public boolean verify(String hostname, SSLSession session) {
+    private static final HostnameVerifier ALL_TRUSTING_HOSTNAME_VERIFIER = new HostnameVerifier()
+    {
+        public boolean verify(String hostname, SSLSession session)
+        {
             return true;
         }
     };
