@@ -11,7 +11,8 @@ public class AppProperties
 {
     public String sqlConnectionString;
     public boolean reportKafkaIPAvailability;
-    public String kafkaIP;
+    public String kafkaClusterIP;
+    public String kafkaGTMIP;
     public boolean reportToSql;
     public boolean reportToSlf4j;
     public boolean reportToConsole;

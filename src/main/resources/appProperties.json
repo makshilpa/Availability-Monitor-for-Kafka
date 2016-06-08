@@ -1,7 +1,8 @@
 {
   "sqlConnectionString": "jdbc:sqlserver://test;DatabaseName=test;lockTimeout=30000;loginTimeout=30000;user=test;password=test",
   "reportKafkaIpAvailability": true,
-  "kafkaIP": "1.1.1.1",
+  "kafkaClusterIP": "1.1.1.1",
+  "kafkaGTMIP": "1.1.1.1",
   "reportToSql": true,
   "reportToSlf4j": true,
   "reportToConsole": false,
