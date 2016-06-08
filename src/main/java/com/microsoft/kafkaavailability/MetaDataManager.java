@@ -8,6 +8,9 @@ package com.microsoft.kafkaavailability;
 
 import com.microsoft.kafkaavailability.properties.MetaDataManagerProperties;
 import com.google.gson.Gson;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.KeeperException;
 import scala.Option;
 import scala.collection.JavaConversions;
@@ -28,13 +31,19 @@ import java.util.List;
  */
 public class MetaDataManager implements IMetaDataManager
 {
+    private CuratorFramework client;
+
     MetaDataManagerProperties m_mDProps;
     List<String> m_brokerIds;
 
     public MetaDataManager(IPropertiesManager<MetaDataManagerProperties> propManager)
     {
         m_mDProps = propManager.getProperties();
-
+        client = CuratorFrameworkFactory.newClient(
+                m_mDProps.zooKeeperHosts,
+                new ExponentialBackoffRetry(1000, 30)
+        );
+        client.start();
     }
 
     /***
@@ -64,19 +73,17 @@ public class MetaDataManager implements IMetaDataManager
      */
     private List<String> getBrokerListFromZooKeeper(boolean addPort) throws MetaDataManagerException
     {
-        ZooKeeper zooKeeper;
         List<String> brokerInfos = new ArrayList<String>();
         Gson gson = new Gson();
         int exceptionCount = 0;
         try
         {
             System.out.println(m_mDProps.zooKeeperHosts + " " + m_mDProps.soTimeout);
-            zooKeeper = new ZooKeeper(m_mDProps.zooKeeperHosts, m_mDProps.soTimeout, null);
-            List<String> ids = zooKeeper.getChildren("/brokers/ids", false);
+            List<String> ids = client.getChildren().forPath("/brokers/ids");
 
             for (String id : ids)
             {
-                String brokerInfoStr = new String(zooKeeper.getData("/brokers/ids/" + id, false, null));
+                String brokerInfoStr = new String(client.getData().forPath("/brokers/ids/" + id));
                 BrokerInfo brokerInfo = gson.fromJson(brokerInfoStr, BrokerInfo.class);
                 if (addPort)
                 {
@@ -86,7 +93,6 @@ public class MetaDataManager implements IMetaDataManager
                     brokerInfos.add(brokerInfo.host);
                 }
             }
-            zooKeeper.close();
         } catch (ArrayIndexOutOfBoundsException e)
         {
             exceptionCount++;
@@ -104,6 +110,10 @@ public class MetaDataManager implements IMetaDataManager
         {
             throw new MetaDataManagerException(e.getMessage());
         }catch (KeeperException e)
+        {
+            throw new MetaDataManagerException(e.getMessage());
+        }
+        catch (Exception e)
         {
             throw new MetaDataManagerException(e.getMessage());
         }
@@ -224,6 +234,17 @@ public class MetaDataManager implements IMetaDataManager
                 }
                 System.out.println("    Partition: " + part.partitionId() + ": Leader: " + leader + " Replicas:[" + replicas + "] ISR:[" + isr + "]");
             }
+        }
+    }
+
+    /***
+     * Releases all resources
+     */
+    public void close()
+    {
+        if(client != null)
+        {
+            client.close();
         }
     }
 }

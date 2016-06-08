@@ -289,5 +289,7 @@ public class App
             MetricNameEncoded consumerAvailability = new MetricNameEncoded("Consumer.Availability", "all");
             m_metrics.register(new Gson().toJson(consumerAvailability), new AvailabilityGauge(consumerTryCount, consumerTryCount - consumerFailCount));
         }
+
+        ((MetaDataManager)metaDataManager).close();
     }
 }
