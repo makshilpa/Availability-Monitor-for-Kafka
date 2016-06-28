@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class SqlReporter extends ScheduledReporter
 {
+    final static Logger m_logger = LoggerFactory.getLogger(SqlReporter.class);
     /**
      *
      * @param registry the registry to report
@@ -298,7 +299,7 @@ public class SqlReporter extends ScheduledReporter
             MetricNameEncoded metricNameEncoded = new Gson().fromJson(name, MetricNameEncoded.class);
             String connectionUrl = connectionString;
             con = DriverManager.getConnection(connectionUrl);
-            System.out.println("Connected.");
+            m_logger.info("Connected.");
 
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -309,7 +310,7 @@ public class SqlReporter extends ScheduledReporter
             rs = stmt.executeQuery(SQL);
         } catch (Exception e)
         {
-            System.out.println(e.getMessage());
+            m_logger.error(e.toString());
         }
         finally
         {

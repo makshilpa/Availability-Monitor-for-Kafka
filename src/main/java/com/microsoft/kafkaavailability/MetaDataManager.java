@@ -19,6 +19,8 @@ import kafka.javaapi.TopicMetadata;
 import kafka.javaapi.TopicMetadataRequest;
 import kafka.javaapi.consumer.SimpleConsumer;
 import org.apache.zookeeper.ZooKeeper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,6 +33,7 @@ import java.util.List;
  */
 public class MetaDataManager implements IMetaDataManager
 {
+    final static Logger m_logger = LoggerFactory.getLogger(MetaDataManager.class);
     private CuratorFramework client;
 
     MetaDataManagerProperties m_mDProps;
@@ -78,7 +81,7 @@ public class MetaDataManager implements IMetaDataManager
         int exceptionCount = 0;
         try
         {
-            System.out.println(m_mDProps.zooKeeperHosts + " " + m_mDProps.soTimeout);
+            m_logger.info(m_mDProps.zooKeeperHosts + " " + m_mDProps.soTimeout);
             List<String> ids = client.getChildren().forPath("/brokers/ids");
 
             for (String id : ids)
@@ -98,7 +101,7 @@ public class MetaDataManager implements IMetaDataManager
             exceptionCount++;
             if (exceptionCount < m_mDProps.acceptable_exception_count)
             {
-                System.out.println(e.toString());
+                m_logger.error(e.toString());
             } else
             {
                 throw new MetaDataManagerException(e.getMessage());
@@ -121,7 +124,7 @@ public class MetaDataManager implements IMetaDataManager
 
         if (brokerInfos.isEmpty())
         {
-            System.out.println("Could not connect to ZooKeeper");
+            m_logger.info("Could not connect to ZooKeeper");
         }
         return brokerInfos;
     }
@@ -156,7 +159,7 @@ public class MetaDataManager implements IMetaDataManager
                 allMetaData.addAll(resp.topicsMetadata());
             } catch (Exception e)
             {
-                System.out.println(e);
+                m_logger.error(e.toString());
             }
         }
         return allMetaData;
@@ -213,7 +216,7 @@ public class MetaDataManager implements IMetaDataManager
         List<kafka.javaapi.TopicMetadata> data = getAllTopicPartition();
         for (kafka.javaapi.TopicMetadata item : data)
         {
-            System.out.println("Topic: " + item.topic());
+            m_logger.info("Topic: " + item.topic());
             for (kafka.javaapi.PartitionMetadata part : item.partitionsMetadata())
             {
                 String replicas = "";
@@ -232,7 +235,7 @@ public class MetaDataManager implements IMetaDataManager
                     if (part.leader().host() != null)
                         leader = part.leader().host();
                 }
-                System.out.println("    Partition: " + part.partitionId() + ": Leader: " + leader + " Replicas:[" + replicas + "] ISR:[" + isr + "]");
+                m_logger.info("    Partition: " + part.partitionId() + ": Leader: " + leader + " Replicas:[" + replicas + "] ISR:[" + isr + "]");
             }
         }
     }

@@ -41,7 +41,7 @@ public class App
 
     public static void main(String[] args) throws IOException, MetaDataManagerException, InterruptedException
     {
-        System.out.println("Starting KafkaAvailability Tool");
+        m_logger.info("Starting KafkaAvailability Tool");
         IPropertiesManager appPropertiesManager = new PropertiesManager<AppProperties>("appProperties.json", AppProperties.class);
         appProperties = (AppProperties) appPropertiesManager.getProperties();
         Options options = new Options();
@@ -85,7 +85,7 @@ public class App
         } catch (ParseException exp)
         {
             // oops, something went wrong
-            System.err.println("Parsing failed.  Reason: " + exp.getMessage());
+            m_logger.error("Parsing failed.  Reason: " + exp.getMessage());
             formatter.printHelp("KafkaAvailability", options);
         }
 
@@ -146,38 +146,37 @@ public class App
         IProducer producer = new Producer(producerPropertiesManager, metaDataManager);
         IConsumer consumer = new Consumer(consumerPropertiesManager, metaDataManager);
 
-
         int producerTryCount = 0, clusterIPStatusTryCount = 0, gtmIPStatusTryCount = 0;
         int producerFailCount = 0, clusterIPStatusFailCount = 0, gtmIPStatusFailCount = 0;
         long startTime, endTime;
         int numPartitions = 0;
-        System.out.println("get metadata size");
+        m_logger.info("get metadata size");
         for (kafka.javaapi.TopicMetadata topic : metaDataManager.getAllTopicPartition())
         {
             numPartitions += topic.partitionsMetadata().size();
         }
-        System.out.println("done getting metadata size");
+        m_logger.info("done getting metadata size");
 
         final SlidingWindowReservoir latency = new SlidingWindowReservoir(numPartitions);
         Histogram histogramProducerLatency = new Histogram(latency);
         MetricNameEncoded producerLatency = new MetricNameEncoded("Producer.Latency", "all");
         if (appProperties.sendProducerLatency)
             m_metrics.register(new Gson().toJson(producerLatency), histogramProducerLatency);
-        System.out.println("start topic partition loop");
+        m_logger.info("start topic partition loop");
 
         for (kafka.javaapi.TopicMetadata item : metaDataManager.getAllTopicPartition())
         {
-            System.out.println("Starting VIP prop check." + appProperties.reportKafkaIPAvailability);
+            m_logger.info("Starting VIP prop check." + appProperties.reportKafkaIPAvailability);
             if (appProperties.reportKafkaIPAvailability)
             {
                 try
                 {
-                    System.out.println("Starting VIP check.");
+                    m_logger.info("Starting VIP check.");
                     clusterIPStatusTryCount++;
                     producer.SendCanaryToKafkaIP(appProperties.kafkaClusterIP, item.topic(), false);
                 } catch (Exception e)
                 {
-                    System.out.println("VIP check exception");
+                    m_logger.info("VIP check exception");
                     clusterIPStatusFailCount++;
                     m_logger.error("ClusterIPStatus -- Error Writing to Topic: {}; Exception: {}", item.topic(), e);
                 }
@@ -191,7 +190,7 @@ public class App
                     m_logger.error("GTMIPStatus -- Error Writing to Topic: {}; Exception: {}", item.topic(), e);
                 }
             }
-            System.out.println("done with VIP prop check.");
+            m_logger.info("done with VIP prop check.");
             final SlidingWindowReservoir topicLatency = new SlidingWindowReservoir(item.partitionsMetadata().size());
             Histogram histogramProducerTopicLatency = new Histogram(topicLatency);
             MetricNameEncoded producerTopicLatency = new MetricNameEncoded("Producer.Topic.Latency", item.topic());
@@ -228,7 +227,7 @@ public class App
         }
         if (appProperties.reportKafkaIPAvailability)
         {
-            System.out.println("About to report kafkaIPAvail:" + clusterIPStatusTryCount +  " " + clusterIPStatusFailCount);
+            m_logger.info("About to report kafkaIPAvail:" + clusterIPStatusTryCount + " " + clusterIPStatusFailCount);
             MetricNameEncoded kafkaClusterIPAvailability = new MetricNameEncoded("KafkaIP.Availability", "all");
             m_metrics.register(new Gson().toJson(kafkaClusterIPAvailability), new AvailabilityGauge(clusterIPStatusTryCount, clusterIPStatusTryCount - clusterIPStatusFailCount));
             MetricNameEncoded kafkaGTMIPAvailability = new MetricNameEncoded("KafkaGTMIP.Availability", "all");
