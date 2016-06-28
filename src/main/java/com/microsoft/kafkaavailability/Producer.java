@@ -119,8 +119,8 @@ public class Producer implements IProducer
                 con.setRequestProperty("Content-Type", "application/octet-stream");
                 con.setUseCaches(false);
                 String urlParameters = producerProperties.messageStart + new Date().getTime() + ",www.example.com,";
-                System.out.println("Sending 'POST' request to URL : " + kafkaIP + topicName);
-                System.out.println("Post parameters : " + urlParameters);
+                m_logger.info("Sending 'POST' request to URL : " + kafkaIP + topicName);
+                m_logger.info("Post parameters : " + urlParameters);
 
 
                 // Send post request
@@ -132,7 +132,7 @@ public class Producer implements IProducer
 
                 int responseCode = con.getResponseCode();
 
-                System.out.println("Response Code : " + responseCode);
+                m_logger.info("Response Code : " + responseCode);
                 BufferedReader in = new BufferedReader(
                         new InputStreamReader(con.getInputStream()));
                 String inputLine;
@@ -145,10 +145,11 @@ public class Producer implements IProducer
                 }
                 in.close();
                 //print result
-                System.out.println(response.toString());
+                m_logger.info(response.toString());
                 break;
             } catch (Exception e)
             {
+                m_logger.error(e.toString());
                 e.printStackTrace();
                 if (i == m_vipRetries)
                     throw e;
