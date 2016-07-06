@@ -4,6 +4,9 @@
     "broker2:port"
   ],
   "useWhiteList": false,
+  "topicsWhitelist":[
+    "testtopic"
+  ],
   "soTimeout": 100000,
   "bufferSize": 65536,
   "clientId": "test",
