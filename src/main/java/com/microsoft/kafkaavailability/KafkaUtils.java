@@ -32,6 +32,9 @@ public class KafkaUtils {
     static int connectionTimeOutInMs = 10 * 1000; // 10 secs
 
     private static ZkClient fromCurator(CuratorFramework curatorFramework) {
+        // Note: You must initialize the ZkClient with ZKStringSerializer.  If you don't, then
+        // createTopic() will only seem to work (it will return without error).  The topic will exist in
+        // only ZooKeeper and will be returned when listing topics, but Kafka itself does not create the topic.
         ZkClient zkClient = new ZkClient(curatorFramework.getZookeeperClient().getCurrentConnectionString(), sessionTimeOutInMs, connectionTimeOutInMs, ZKStringSerializer$.MODULE$);
         zkClient.waitUntilConnected();
         return zkClient;
