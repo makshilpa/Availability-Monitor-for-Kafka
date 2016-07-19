@@ -21,7 +21,12 @@ import kafka.javaapi.consumer.SimpleConsumer;
 import org.apache.zookeeper.ZooKeeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import kafka.admin.AdminOperationException;
+import kafka.admin.AdminUtils;
+import kafka.common.TopicAndPartition;
+import kafka.common.TopicExistsException;
 
+import java.util.Properties;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -66,6 +71,29 @@ public class MetaDataManager implements IMetaDataManager
             m_brokerIds = m_mDProps.brokerList;
         }
         return m_brokerIds;
+    }
+
+    @Override
+    public void createTopicIfNotExist(String topicName, int partitions, int replicationFactor) {
+        KafkaUtils.createTopic(topicName, partitions, replicationFactor, client);
+    }
+
+    @Override
+    public void createWhiteListedTopics() {
+        List<String> topics = new ArrayList<String>();
+        if (m_mDProps.useWhiteList) {
+            topics.addAll(m_mDProps.topicsWhitelist);
+            int replicationFactor = m_mDProps.replicationFactor;
+            try {
+                List<String> brokerList = getBrokerList(true);
+
+                for (String topicName : topics) {
+                    createTopicIfNotExist(topicName, brokerList.size(), replicationFactor);
+                }
+            } catch (Exception e) {
+                m_logger.error(e.toString());
+            }
+        }
     }
 
     /***

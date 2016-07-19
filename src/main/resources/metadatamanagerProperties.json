@@ -7,6 +7,7 @@
   "topicsWhitelist":[
     "testtopic"
   ],
+  "replicationFactor": 3,
   "soTimeout": 100000,
   "bufferSize": 65536,
   "clientId": "test",
