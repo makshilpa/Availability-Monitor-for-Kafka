@@ -14,7 +14,7 @@
   "sendConsumerLatency": true,
   "sendProducerTopicLatency": true,
   "sendConsumerTopicLatency": true,
-  "sendProducerPartitionLatency": false,
-  "sendConsumerPartitionLatency": false
+  "sendProducerPartitionLatency": true,
+  "sendConsumerPartitionLatency": true
   //"csvDirectory": ""
 }

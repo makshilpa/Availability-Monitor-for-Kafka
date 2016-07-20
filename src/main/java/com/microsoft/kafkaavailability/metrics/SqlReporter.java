@@ -187,7 +187,7 @@ public class SqlReporter extends ScheduledReporter
         }
     }
 
-    private static final Logger m_logger = LoggerFactory.getLogger(CsvReporter.class);
+    private static final Logger m_logger = LoggerFactory.getLogger(SqlReporter.class);
     private static final Charset UTF_8 = Charset.forName("UTF-8");
 
     private final String connectionString;
@@ -288,7 +288,6 @@ public class SqlReporter extends ScheduledReporter
     private void report(long timestamp, String name, String header, String line, Object... values)
     {
         Connection con = null;
-        ResultSet rs = null;
         Statement stmt = null;
         try
         {
@@ -305,14 +304,14 @@ public class SqlReporter extends ScheduledReporter
             // Create and execute an SQL statement that returns some data.
             String SQL = String.format(String.format("insert into [dbo].[%s] values('%s','%s','%s',%s)", metricNameEncoded.name, userId, sdf.format(new Date(timestamp*1000)), metricNameEncoded.tag, line), values);
             stmt = con.createStatement();
-            rs = stmt.executeQuery(SQL);
+            stmt.execute(SQL);
+
         } catch (Exception e)
         {
             m_logger.error(e.toString());
         }
         finally
         {
-            try { rs.close(); } catch (Exception e) { /* ignored */ }
             try { stmt.close(); } catch (Exception e) { /* ignored */ }
             try { con.close(); } catch (Exception e) { /* ignored */ }
         }

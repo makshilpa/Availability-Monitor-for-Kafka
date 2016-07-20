@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
+import java.util.List;
 
 /***
  * Sends a canary message to every topic and partition in Kafka.
@@ -34,7 +35,7 @@ import java.util.concurrent.TimeUnit;
 public class App
 {
     final static Logger m_logger = LoggerFactory.getLogger(App.class);
-    static int m_sleepTime = 300000;
+    static int m_sleepTime = 120000;
     static String m_cluster = "localhost";
     static MetricRegistry m_metrics;
     static AppProperties appProperties;
@@ -46,7 +47,7 @@ public class App
         appProperties = (AppProperties) appPropertiesManager.getProperties();
         Options options = new Options();
         options.addOption("r", "run", true, "Number of runs. Don't use this argument if you want to run infintely.");
-        options.addOption("s", "sleep", true, "Time (in milliseconds) to sleep between each run. Default is 300000");
+        options.addOption("s", "sleep", true, "Time (in milliseconds) to sleep between each run. Default is 120000");
         Option clusterOption = Option.builder("c").hasArg().required(true).longOpt("cluster").desc("(REQUIRED) Cluster name").build();
         options.addOption(clusterOption);
         CommandLineParser parser = new DefaultParser();
@@ -150,6 +151,8 @@ public class App
         int producerFailCount = 0, clusterIPStatusFailCount = 0, gtmIPStatusFailCount = 0;
         long startTime, endTime;
         int numPartitions = 0;
+        //Auto creating a whitelisted topics, if not available.
+        metaDataManager.createWhiteListedTopics();
         m_logger.info("get metadata size");
         for (kafka.javaapi.TopicMetadata topic : metaDataManager.getAllTopicPartition())
         {
@@ -288,7 +291,6 @@ public class App
             MetricNameEncoded consumerAvailability = new MetricNameEncoded("Consumer.Availability", "all");
             m_metrics.register(new Gson().toJson(consumerAvailability), new AvailabilityGauge(consumerTryCount, consumerTryCount - consumerFailCount));
         }
-
         ((MetaDataManager)metaDataManager).close();
     }
 }

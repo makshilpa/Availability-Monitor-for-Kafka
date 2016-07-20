@@ -14,6 +14,7 @@ public class MetaDataManagerProperties
     public List<String> brokerList;
     public List<String> topicsWhitelist;
     public boolean useWhiteList;
+    public int replicationFactor;
     public int soTimeout;
     public int bufferSize;
     public String clientId;
