@@ -328,11 +328,8 @@ public class SqlReporter extends ScheduledReporter
                     }
                     con = null;
                 }
-                // If the maximum number of retries not exceeded
-                if (iRetryCount < iMaxRetries) {
-                    // Sleep and continue (convert to milliseconds)
-                    Thread.sleep(iRetryInterval * 1000);
-                }
+                // Sleep and continue (convert to milliseconds)
+                Thread.sleep(iRetryInterval * 1000);
             }
         }
         // unreported exception java.lang.InterruptedException; must be caught or declared to be thrown
