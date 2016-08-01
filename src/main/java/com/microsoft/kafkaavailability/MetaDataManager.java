@@ -83,7 +83,7 @@ public class MetaDataManager implements IMetaDataManager
         List<String> topics = new ArrayList<String>();
         if (m_mDProps.useWhiteList) {
             topics.addAll(m_mDProps.topicsWhitelist);
-            int replicationFactor = m_mDProps.replicationFactor;
+            int replicationFactor = (m_mDProps.replicationFactor > 0) ? m_mDProps.replicationFactor : 3;
             try {
                 List<String> brokerList = getBrokerList(true);
 
