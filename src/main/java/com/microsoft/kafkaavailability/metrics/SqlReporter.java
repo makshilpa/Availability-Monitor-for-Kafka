@@ -285,35 +285,91 @@ public class SqlReporter extends ScheduledReporter
         report(timestamp, name, "value", "'%s'", gauge.getValue());
     }
 
-    private void report(long timestamp, String name, String header, String line, Object... values)
-    {
+    private void report(long timestamp, String name, String header, String line, Object... values) {
         Connection con = null;
         Statement stmt = null;
-        try
-        {
-            // Load the SQLServerDriver class, build the
-            // connection string, and get a connection
-            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-            MetricNameEncoded metricNameEncoded = new Gson().fromJson(name, MetricNameEncoded.class);
-            String connectionUrl = connectionString;
-            con = DriverManager.getConnection(connectionUrl);
+        int iMaxRetries = 10;
+        int iRetryInterval = 5;
+        boolean retry = true;
 
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        MetricNameEncoded metricNameEncoded = new Gson().fromJson(name, MetricNameEncoded.class);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        try {
+            for (int iRetryCount = 0; iRetryCount < iMaxRetries && retry; iRetryCount++) {
+                try {
+                    con = getConnection(connectionString);
 
-            // Create and execute an SQL statement that returns some data.
-            String SQL = String.format(String.format("insert into [dbo].[%s] values('%s','%s','%s',%s)", metricNameEncoded.name, userId, sdf.format(new Date(timestamp*1000)), metricNameEncoded.tag, line), values);
-            stmt = con.createStatement();
-            stmt.execute(SQL);
+                    // Create and execute an SQL statement that returns some data.
+                    String SQL = String.format(String.format("insert into [dbo].[%s] values('%s','%s','%s',%s)", metricNameEncoded.name, userId, sdf.format(new Date(timestamp * 1000)), metricNameEncoded.tag, line), values);
 
-        } catch (Exception e)
-        {
-            m_logger.error(e.toString());
+                    if (null != con) {
+                        stmt = con.createStatement();
+                        if (null != stmt) {
+                            stmt.execute(SQL);
+                            //Setting retry to false to exit the loop
+                            retry = false;
+                        }
+                    }
+                } catch (java.sql.SQLException e) {
+                    logSQLException(e);
+                } finally {
+                    // Clean up the command and Database Connection objects
+                    try {
+                        if (stmt != null) stmt.close();
+                    } catch (java.sql.SQLException e) {
+                        logSQLException(e);
+                    }
+
+                    // Clean up Connection object
+                    try {
+                        if (con != null) con.close();
+                    } catch (java.sql.SQLException e) {
+                        logSQLException(e);
+                    }
+                    con = null;
+                }
+                // If the maximum number of retries not exceeded
+                if (retry && iRetryCount < iMaxRetries) {
+                    // Sleep and continue (convert to milliseconds)
+                    Thread.sleep(iRetryInterval * 1000);
+                }
+            }
         }
-        finally
-        {
-            try { stmt.close(); } catch (Exception e) { /* ignored */ }
-            try { con.close(); } catch (Exception e) { /* ignored */ }
+        // unreported exception java.lang.InterruptedException; must be caught or declared to be thrown
+        catch (Exception ex) {
+            ex.printStackTrace();
+            m_logger.error(ex.getMessage(), ex);
+        }
+    }
+
+    /**
+     Return the connection instance to the SQL Server.
+     Load the SQLServerDriver class, build the connection string
+     **/
+    public Connection getConnection(String connStr) {
+
+        try {
+            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+            Connection conn = java.sql.DriverManager.getConnection(connStr);
+            return conn;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            m_logger.error(ex.getMessage(), ex);
+        }
+        return null;
+    }
+
+    // Display an SQLException which has occured in this application.
+    private static void logSQLException (java.sql.SQLException e) {
+        // Notice that a SQLException is actually a chain of SQLExceptions,
+        // let's print all of them...
+        java.sql.SQLException next = e;
+        while (next != null) {
+            m_logger.error(next.getMessage());
+            m_logger.error("Error Code: " + next.getErrorCode());
+            m_logger.error("SQL State: " + next.getSQLState());
+            next = next.getNextException();
         }
     }
 }
