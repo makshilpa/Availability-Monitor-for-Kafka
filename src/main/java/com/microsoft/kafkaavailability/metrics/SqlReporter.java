@@ -290,13 +290,12 @@ public class SqlReporter extends ScheduledReporter
         Statement stmt = null;
         int iMaxRetries = 10;
         int iRetryInterval = 5;
-        boolean retry = true;
 
         MetricNameEncoded metricNameEncoded = new Gson().fromJson(name, MetricNameEncoded.class);
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         try {
-            for (int iRetryCount = 0; iRetryCount < iMaxRetries && retry; iRetryCount++) {
+            for (int iRetryCount = 0; iRetryCount < iMaxRetries; iRetryCount++) {
                 try {
                     con = getConnection(connectionString);
 
@@ -308,7 +307,7 @@ public class SqlReporter extends ScheduledReporter
                         if (null != stmt) {
                             stmt.execute(SQL);
                             //Setting retry to false to exit the loop
-                            retry = false;
+                            break;
                         }
                     }
                 } catch (java.sql.SQLException e) {
@@ -330,7 +329,7 @@ public class SqlReporter extends ScheduledReporter
                     con = null;
                 }
                 // If the maximum number of retries not exceeded
-                if (retry && iRetryCount < iMaxRetries) {
+                if (iRetryCount < iMaxRetries) {
                     // Sleep and continue (convert to milliseconds)
                     Thread.sleep(iRetryInterval * 1000);
                 }
