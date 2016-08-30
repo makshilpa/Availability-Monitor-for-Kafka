@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Collections;
 
 /***
  * Gets the list of Kafka brokers.
@@ -44,14 +45,10 @@ public class MetaDataManager implements IMetaDataManager
     MetaDataManagerProperties m_mDProps;
     List<String> m_brokerIds;
 
-    public MetaDataManager(IPropertiesManager<MetaDataManagerProperties> propManager)
+    public MetaDataManager(CuratorFramework curatorFramework, IPropertiesManager<MetaDataManagerProperties> propManager)
     {
         m_mDProps = propManager.getProperties();
-        client = CuratorFrameworkFactory.newClient(
-                m_mDProps.zooKeeperHosts,
-                new ExponentialBackoffRetry(1000, 30)
-        );
-        client.start();
+        this.client = curatorFramework;
     }
 
     /***
@@ -109,7 +106,6 @@ public class MetaDataManager implements IMetaDataManager
         int exceptionCount = 0;
         try
         {
-            m_logger.info(m_mDProps.zooKeeperHosts + " " + m_mDProps.soTimeout);
             List<String> ids = client.getChildren().forPath("/brokers/ids");
 
             for (String id : ids)
@@ -149,10 +145,9 @@ public class MetaDataManager implements IMetaDataManager
             throw new MetaDataManagerException(e.getMessage());
         }
 
-
         if (brokerInfos.isEmpty())
         {
-            m_logger.info("Could not connect to ZooKeeper");
+            m_logger.info("Unable to get BrokerList From ZooKeeper. Check brokers if available.");
         }
         return brokerInfos;
     }
@@ -163,31 +158,30 @@ public class MetaDataManager implements IMetaDataManager
      * @return List topic metadata
      */
     @Override
-    public List<kafka.javaapi.TopicMetadata> getMetaDataFromAllBrokers()
-    {
+    public List<kafka.javaapi.TopicMetadata> getMetaDataFromAllBrokers() {
         List<String> topics = new ArrayList<String>();
-        if (m_mDProps.useWhiteList)
-        {
-            topics.addAll(m_mDProps.topicsWhitelist);
+        if (m_mDProps.useWhiteList) {
+            //Restricts the metata to specific topics only
+            //topics.addAll(m_mDProps.topicsWhitelist);
         }
         TopicMetadataRequest req = new TopicMetadataRequest(topics);
         List<kafka.javaapi.TopicMetadata> allMetaData = new ArrayList<kafka.javaapi.TopicMetadata>();
-        for (String brokerId : m_brokerIds)
-        {
-            SimpleConsumer consumer = new SimpleConsumer(
-                    brokerId.split(":")[0],
-                    Integer.parseInt(brokerId.split(":")[1]),
-                    m_mDProps.soTimeout,
-                    m_mDProps.bufferSize,
-                    m_mDProps.clientId);
-            kafka.javaapi.TopicMetadataResponse resp = null;
-            try
-            {
+        for (String brokerId : m_brokerIds) {
+            SimpleConsumer consumer = null;
+            try {
+                consumer = new SimpleConsumer(
+                        brokerId.split(":")[0],
+                        Integer.parseInt(brokerId.split(":")[1]),
+                        m_mDProps.soTimeout,
+                        m_mDProps.bufferSize,
+                        m_mDProps.clientId);
+                kafka.javaapi.TopicMetadataResponse resp = null;
                 resp = consumer.send(req);
                 allMetaData.addAll(resp.topicsMetadata());
-            } catch (Exception e)
-            {
-                m_logger.error(e.toString());
+            } catch (Exception e) {
+                m_logger.error("Error communicating with Broker [" + brokerId + "]. Reason: " + e.getMessage(), e);
+            } finally {
+                if (consumer != null) consumer.close();
             }
         }
         return allMetaData;
@@ -232,6 +226,7 @@ public class MetaDataManager implements IMetaDataManager
                 ret.add(new kafka.javaapi.TopicMetadata(tm));
             }
         }
+        Collections.sort(ret, new TopicMetadataComparator());
         return ret;
     }
 
@@ -275,7 +270,7 @@ public class MetaDataManager implements IMetaDataManager
     {
         if(client != null)
         {
-            client.close();
+            m_logger.debug("Closing the client");
         }
     }
 }
