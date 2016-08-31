@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class SqlReporter extends ScheduledReporter
 {
+    private static final Logger m_logger = LoggerFactory.getLogger(SqlReporter.class);
     /**
      *
      * @param registry the registry to report
@@ -48,33 +49,31 @@ public class SqlReporter extends ScheduledReporter
                        SortedMap<String, Counter> counters,
                        SortedMap<String, Histogram> histograms,
                        SortedMap<String, Meter> meters,
-                       SortedMap<String, Timer> timers)
-    {
+                       SortedMap<String, Timer> timers) {
         final long timestamp = TimeUnit.MILLISECONDS.toSeconds(clock.getTime());
 
-        for (Map.Entry<String, Gauge> entry : gauges.entrySet())
-        {
-            reportGauge(timestamp, entry.getKey(), entry.getValue());
-        }
+        try {
+            for (Map.Entry<String, Gauge> entry : gauges.entrySet()) {
+                reportGauge(timestamp, entry.getKey(), entry.getValue());
+            }
 
-        for (Map.Entry<String, Counter> entry : counters.entrySet())
-        {
-            reportCounter(timestamp, entry.getKey(), entry.getValue());
-        }
+            for (Map.Entry<String, Counter> entry : counters.entrySet()) {
+                reportCounter(timestamp, entry.getKey(), entry.getValue());
+            }
 
-        for (Map.Entry<String, Histogram> entry : histograms.entrySet())
-        {
-            reportHistogram(timestamp, entry.getKey(), entry.getValue());
-        }
+            for (Map.Entry<String, Histogram> entry : histograms.entrySet()) {
+                reportHistogram(timestamp, entry.getKey(), entry.getValue());
+            }
 
-        for (Map.Entry<String, Meter> entry : meters.entrySet())
-        {
-            reportMeter(timestamp, entry.getKey(), entry.getValue());
-        }
+            for (Map.Entry<String, Meter> entry : meters.entrySet()) {
+                reportMeter(timestamp, entry.getKey(), entry.getValue());
+            }
 
-        for (Map.Entry<String, Timer> entry : timers.entrySet())
-        {
-            reportTimer(timestamp, entry.getKey(), entry.getValue());
+            for (Map.Entry<String, Timer> entry : timers.entrySet()) {
+                reportTimer(timestamp, entry.getKey(), entry.getValue());
+            }
+        } catch (Exception e) {
+            m_logger.error(e.getMessage(), e);
         }
     }
 
@@ -187,7 +186,6 @@ public class SqlReporter extends ScheduledReporter
         }
     }
 
-    private static final Logger m_logger = LoggerFactory.getLogger(SqlReporter.class);
     private static final Charset UTF_8 = Charset.forName("UTF-8");
 
     private final String connectionString;
