@@ -164,7 +164,6 @@ public class MetaDataManager implements IMetaDataManager
             //Restricts the metata to specific topics only
             //topics.addAll(m_mDProps.topicsWhitelist);
         }
-
         try {
             m_brokerIds = getBrokerList(true);
         } catch (Exception e) {

@@ -117,7 +117,6 @@ public class Consumer implements IConsumer {
                 }
 
                 if (code == ErrorMapping.OffsetOutOfRangeCode()) {
-
                     // We asked for an invalid offset. For simple case ask for the last element to reset
                     long invalidReadOffset = readOffset;
                     readOffset = getLastOffset(consumer, a_topic, a_partition, kafka.api.OffsetRequest.LatestTime(), clientName);
