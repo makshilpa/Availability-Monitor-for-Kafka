@@ -97,24 +97,20 @@ public class Producer implements IProducer
      * @throws Exception
      */
 
-    public void SendCanaryToKafkaIP(String kafkaIP, String topicName, boolean enableCertCheck) throws Exception
-    {
+    public void SendCanaryToKafkaIP(String kafkaIP, String topicName, boolean enableCertCheck) throws Exception {
         URL obj = new URL(kafkaIP + topicName);
         HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
-        if (!enableCertCheck)
-        {
+        if (!enableCertCheck) {
             setAcceptAllVerifier(con);
         }
 
-        for (int i = 0; i < m_vipRetries; i++)
-        {
-            try
-            {
+        for (int i = 0; i < m_vipRetries; i++) {
+            try {
 
                 //add request header
                 con.setRequestMethod("POST");
-                con.setConnectTimeout(5000);
-                con.setReadTimeout(10000);
+                con.setConnectTimeout(15000);
+                con.setReadTimeout(15000);
                 con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
                 con.setRequestProperty("Content-Type", "application/octet-stream");
                 con.setUseCaches(false);
@@ -139,23 +135,31 @@ public class Producer implements IProducer
                 StringBuffer response = new StringBuffer();
 
 
-                while ((inputLine = in.readLine()) != null)
-                {
+                while ((inputLine = in.readLine()) != null) {
                     response.append(inputLine);
                 }
                 in.close();
                 //print result
                 m_logger.info(response.toString());
                 break;
-            } catch (Exception e)
-            {
-                m_logger.error(e.toString());
+            } catch (Exception e) {
+                m_logger.error(e.getMessage(), e);
                 e.printStackTrace();
-                if (i == m_vipRetries)
+                //look for m_vipRetries - 1, otherwise you will never throw an exception in case of failures.
+                if (i == m_vipRetries - 1)
                     throw e;
+
+                try {
+                    Thread.sleep(2000);
+                } catch (Exception ex) {
+                    m_logger.error(ex.getMessage(), ex);
+                }
+            } finally {
+                if (con != null) {
+                    con.disconnect();
+                }
             }
         }
-
     }
 
     protected static void setAcceptAllVerifier(HttpsURLConnection connection) throws NoSuchAlgorithmException, KeyManagementException
