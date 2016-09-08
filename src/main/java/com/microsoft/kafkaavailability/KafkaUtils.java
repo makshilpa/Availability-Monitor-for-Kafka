@@ -47,7 +47,7 @@ public class KafkaUtils {
     /**
      * Creates a Topic.
      *
-     * @param topic             Topic name.
+     * @param topicName             Topic name.
      * @param partitions        Number of partitions for the topic.
      * @param replicationFactor Replication factor.
      * @param curatorFramework CuratorFramework.

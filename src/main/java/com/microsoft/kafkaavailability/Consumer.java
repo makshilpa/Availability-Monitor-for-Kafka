@@ -77,7 +77,7 @@ public class Consumer implements IConsumer {
             throw new Exception("Cannot find metadata for Topic and Partition. Exiting");
         }
         if (metadata.leader() == null) {
-            throw new Exception("Cannnot find Leader for Topic and Partition. Exiting");
+            throw new Exception("Cannot find Leader for Topic and Partition. Exiting");
         }
         String leadBroker = metadata.leader().host();
         String clientName = "Client_" + a_topic + "_" + a_partition;
