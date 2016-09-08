@@ -301,7 +301,11 @@ public class App {
                 } catch (Exception e) {
                     m_logger.error("Error Writing to Topic: {}; Partition: {}; Exception: {}", item.topic(), part.partitionId(), e);
                     producerFailCount++;
+<<<<<<< HEAD
                     //now add half an hour, 1 800 000 miliseconds = 30 minutes
+=======
+                    //now add half an hour, 1 800 000 milliseconds = 30 minutes
+>>>>>>> KafkaAvailability_log4j
                     long halfAnHourLater = System.currentTimeMillis() + 1800000;
                     endTime = halfAnHourLater;
                 }
@@ -364,7 +368,8 @@ public class App {
                 } catch (Exception e) {
                     m_logger.error("Error Reading from Topic: {}; Partition: {}; Exception: {}", item.topic(), part.partitionId(), e);
                     consumerFailCount++;
-                    //now add half an hour, 1 800 000 miliseconds = 30 minutes
+
+                    //now add half an hour, 1 800 000 milliseconds = 30 minutes
                     long halfAnHourLater = System.currentTimeMillis() + 1800000;
                     endTime = halfAnHourLater;
                     consumerFailCount++;
