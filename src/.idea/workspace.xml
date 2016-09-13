@@ -1,7 +1,112 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="143c36a4-cac7-4e6e-8803-2f93fef9d1d7" name="Default" comment="" />
+    <list default="true" id="143c36a4-cac7-4e6e-8803-2f93fef9d1d7" name="Default" comment="">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/.name" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/App$1.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/App.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/BrokerInfo.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/Consumer.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/IConsumer.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/IMetaDataManager.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/IProducer.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/IPropertiesManager.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/KafkaError.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/KafkaUtils.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/MetaDataManager.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/MetaDataManagerException.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/Producer$1.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/Producer$2.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/Producer.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/PropertiesManager.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/SimplePartitioner.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/TopicMetadataComparator.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/TopicPartition.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/discovery/CommonUtils$1.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/discovery/CommonUtils.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/discovery/Constants.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/discovery/CuratorClient.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/discovery/CuratorManager.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/discovery/MetaData.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/discovery/ServiceUtil.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/metrics/AvailabilityGauge.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/metrics/MetricNameEncoded.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/metrics/SqlReporter$1.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/metrics/SqlReporter$Builder.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/metrics/SqlReporter.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/properties/AppProperties.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/properties/ConsumerProperties.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/properties/MetaDataManagerProperties.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/com/microsoft/kafkaavailability/properties/ProducerProperties.class" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/kafkaavailability-1.0-SNAPSHOT-jar-with-dependencies.jar" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/compiler.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/copyright/profiles_settings.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/encodings.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__com_101tec_zkclient_0_3.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__com_amazonaws_aws_java_sdk_1_3_22.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__com_google_code_findbugs_annotations_2_0_0.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__com_google_code_gson_gson_2_6.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__com_google_guava_guava_19_0.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__com_microsoft_sqlserver_sqljdbc4_4_0.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__com_netflix_curator_curator_client_1_3_2.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__com_netflix_curator_curator_framework_1_3_2.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__com_netflix_curator_curator_recipes_1_3_2.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__com_netflix_exhibitor_exhibitor_core_1_4_6.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__com_netflix_servo_servo_core_0_4_20.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__com_sun_jersey_jersey_bundle_1_9_1.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__com_sun_jersey_jersey_client_1_11.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__com_sun_jersey_jersey_core_1_11.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__com_sun_xml_bind_jaxb_impl_2_2_4.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__com_yammer_metrics_metrics_core_2_2_0.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__commons_cli_commons_cli_1_3_1.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__commons_codec_commons_codec_1_3.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__commons_logging_commons_logging_1_1_1.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__io_dropwizard_metrics_metrics_core_3_1_0.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__io_netty_netty_3_7_0_Final.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__javax_activation_activation_1_1.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__javax_ws_rs_jsr311_api_1_1_1.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__javax_xml_bind_jaxb_api_2_2_3.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__javax_xml_stream_stax_api_1_0_2.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__jline_jline_0_9_94.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__junit_junit_4_12.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__log4j_apache_log4j_extras_1_2_17.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__log4j_log4j_1_2_17.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__net_sf_jopt_simple_jopt_simple_3_2.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__org_apache_curator_curator_client_2_9_0.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__org_apache_curator_curator_framework_2_9_0.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__org_apache_curator_curator_recipes_2_9_0.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__org_apache_curator_curator_x_discovery_2_9_0.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__org_apache_httpcomponents_httpclient_4_1.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__org_apache_httpcomponents_httpcore_4_1.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__org_apache_kafka_kafka_2_10_0_8_1_1.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__org_apache_lucene_lucene_core_3_6_0.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__org_apache_zookeeper_zookeeper_3_4_6.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__org_codehaus_jackson_jackson_core_asl_1_9_13.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__org_codehaus_jackson_jackson_mapper_asl_1_9_13.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__org_codehaus_jsr166_mirror_jsr166y_1_7_0.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__org_hamcrest_hamcrest_core_1_3.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__org_scala_lang_scala_library_2_10_1.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__org_slf4j_slf4j_api_1_7_13.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__org_slf4j_slf4j_log4j12_1_7_13.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/libraries/Maven__org_xerial_snappy_snappy_java_1_0_5.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/misc.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/modules.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/vcs.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/workspace.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../kafkaavailability.iml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/compiler.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/copyright/profiles_settings.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/appProperties.json" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/consumerProperties.json" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/log4j.properties" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/metadatamanagerProperties.json" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../target/classes/producerProperties.json" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/main/java/com/microsoft/kafkaavailability/App.java" afterPath="$PROJECT_DIR$/main/java/com/microsoft/kafkaavailability/App.java" />
+    </list>
     <ignored path="src.iws" />
     <ignored path=".idea/workspace.xml" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -24,14 +129,9 @@
       <file leaf-file-name="Consumer.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/main/java/com/microsoft/kafkaavailability/Consumer.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="204">
+            <state relative-caret-position="3978">
               <caret line="256" column="32" selection-start-line="256" selection-start-column="32" selection-end-line="256" selection-end-column="32" />
-              <folding>
-                <element signature="e#0#13597#0" expanded="false" />
-                <element signature="imports" expanded="false" />
-                <element signature="e#2069#2070#0" expanded="false" />
-                <element signature="e#2127#2128#0" expanded="false" />
-              </folding>
+              <folding />
             </state>
           </provider>
         </entry>
@@ -39,22 +139,18 @@
       <file leaf-file-name="SqlReporter.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/main/java/com/microsoft/kafkaavailability/metrics/SqlReporter.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="287">
+            <state relative-caret-position="2601">
               <caret line="172" column="28" selection-start-line="172" selection-start-column="26" selection-end-line="172" selection-end-column="28" />
-              <folding>
-                <element signature="imports" expanded="false" />
-                <element signature="e#1110#1111#0" expanded="false" />
-                <element signature="e#1154#1155#0" expanded="false" />
-              </folding>
+              <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="AvailabilityGauge.java" pinned="false" current-in-tab="true">
+      <file leaf-file-name="AvailabilityGauge.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/main/java/com/microsoft/kafkaavailability/metrics/AvailabilityGauge.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="153">
-              <caret line="9" column="13" selection-start-line="9" selection-start-column="13" selection-end-line="9" selection-end-column="13" />
+            <state relative-caret-position="102">
+              <caret line="9" column="11" selection-start-line="9" selection-start-column="11" selection-end-line="9" selection-end-column="11" />
               <folding />
             </state>
           </provider>
@@ -63,7 +159,7 @@
       <file leaf-file-name="MetricNameEncoded.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/main/java/com/microsoft/kafkaavailability/metrics/MetricNameEncoded.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="306">
+            <state relative-caret-position="255">
               <caret line="18" column="0" selection-start-line="18" selection-start-column="0" selection-end-line="18" selection-end-column="0" />
               <folding />
             </state>
@@ -75,10 +171,7 @@
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="1088">
               <caret line="76" column="41" selection-start-line="76" selection-start-column="23" selection-end-line="76" selection-end-column="41" />
-              <folding>
-                <element signature="e#0#3566#0" expanded="false" />
-                <element signature="imports" expanded="false" />
-              </folding>
+              <folding />
             </state>
           </provider>
         </entry>
@@ -88,11 +181,7 @@
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="4641">
               <caret line="299" column="45" selection-start-line="299" selection-start-column="45" selection-end-line="299" selection-end-column="45" />
-              <folding>
-                <element signature="e#0#12582#0" expanded="false" />
-                <element signature="imports" expanded="false" />
-                <element signature="e#11412#11420#0" expanded="false" />
-              </folding>
+              <folding />
             </state>
           </provider>
         </entry>
@@ -102,52 +191,17 @@
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="2125">
               <caret line="144" column="1" selection-start-line="144" selection-start-column="1" selection-end-line="144" selection-end-column="1" />
-              <folding>
-                <element signature="e#0#3188#0" expanded="false" />
-                <element signature="imports" expanded="false" />
-                <element signature="e#1895#1896#0" expanded="false" />
-                <element signature="e#1926#1927#0" expanded="false" />
-                <element signature="e#2073#2074#0" expanded="false" />
-                <element signature="e#2109#2110#0" expanded="false" />
-                <element signature="e#2244#2245#0" expanded="false" />
-                <element signature="e#2277#2278#0" expanded="false" />
-                <element signature="e#2400#2401#0" expanded="false" />
-                <element signature="e#2434#2435#0" expanded="false" />
-                <element signature="e#2589#2590#0" expanded="false" />
-                <element signature="e#2622#2623#0" expanded="false" />
-                <element signature="e#2824#2825#0" expanded="false" />
-                <element signature="e#2868#2869#0" expanded="false" />
-              </folding>
+              <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="ServiceUtil.java" pinned="false" current-in-tab="false">
+      <file leaf-file-name="ServiceUtil.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/main/java/com/microsoft/kafkaavailability/discovery/ServiceUtil.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1343">
+            <state relative-caret-position="858">
               <caret line="100" column="67" selection-start-line="100" selection-start-column="48" selection-end-line="100" selection-end-column="67" />
-              <folding>
-                <element signature="e#0#6169#0" expanded="false" />
-                <element signature="imports" expanded="false" />
-                <element signature="e#1592#1609#0" expanded="false" />
-                <element signature="e#4037#4047#0" expanded="false" />
-                <element signature="e#4898#4908#0" expanded="false" />
-                <element signature="e#5770#5780#0" expanded="false" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="App.java" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/main/java/com/microsoft/kafkaavailability/App.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="0">
-              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-              <folding>
-                <element signature="e#10813#10842#0" expanded="false" />
-                <element signature="e#10920#10949#0" expanded="false" />
-              </folding>
+              <folding />
             </state>
           </provider>
         </entry>
@@ -157,15 +211,7 @@
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="2601">
               <caret line="181" column="38" selection-start-line="181" selection-start-column="38" selection-end-line="181" selection-end-column="38" />
-              <folding>
-                <element signature="e#0#10148#0" expanded="false" />
-                <element signature="e#2685#2693#0" expanded="false" />
-                <element signature="e#3604#3612#0" expanded="false" />
-                <element signature="e#5487#5495#0" expanded="false" />
-                <element signature="e#5945#5974#0" expanded="false" />
-                <element signature="e#7177#7193#0" expanded="false" />
-                <element signature="e#7392#7421#0" expanded="false" />
-              </folding>
+              <folding />
             </state>
           </provider>
         </entry>
@@ -218,13 +264,13 @@
         <option value="$PROJECT_DIR$/main/java/com/microsoft/kafkaavailability/Producer.java" />
         <option value="$PROJECT_DIR$/main/java/com/microsoft/kafkaavailability/KafkaError.java" />
         <option value="$PROJECT_DIR$/main/java/com/microsoft/kafkaavailability/metrics/SqlReporter.java" />
-        <option value="$PROJECT_DIR$/main/java/com/microsoft/kafkaavailability/App.java" />
         <option value="$PROJECT_DIR$/main/java/com/microsoft/kafkaavailability/discovery/CuratorManager.java" />
         <option value="$PROJECT_DIR$/main/resources/appProperties.json" />
         <option value="$PROJECT_DIR$/main/java/com/microsoft/kafkaavailability/IMetaDataManager.java" />
         <option value="$PROJECT_DIR$/main/java/com/microsoft/kafkaavailability/Consumer.java" />
         <option value="$PROJECT_DIR$/main/java/com/microsoft/kafkaavailability/MetaDataManager.java" />
         <option value="$PROJECT_DIR$/main/java/com/microsoft/kafkaavailability/metrics/AvailabilityGauge.java" />
+        <option value="$PROJECT_DIR$/main/java/com/microsoft/kafkaavailability/App.java" />
       </list>
     </option>
   </component>
@@ -269,7 +315,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -280,12 +325,13 @@
           </PATH>
         </subPane>
       </pane>
+      <pane id="Scratches" />
+      <pane id="PackagesPane">
+        <subPane />
+      </pane>
       <pane id="Scope">
         <subPane subId="Production" />
         <subPane subId="Project Files" />
-      </pane>
-      <pane id="PackagesPane">
-        <subPane />
       </pane>
     </panes>
   </component>
@@ -606,33 +652,33 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
-    <editor active="false" />
+    <frame x="-8" y="-8" width="1936" height="1056" extended-state="7" />
+    <editor active="true" />
     <layout>
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Palette&#9;" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Capture Analysis" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+      <window_info id="Capture Analysis" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.3296875" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32875264" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Capture Tool" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
+      <window_info id="Capture Tool" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.27552083" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.27552083" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="UI Designer" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.24947916" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.1130064" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
@@ -665,11 +711,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="299" column="45" selection-start-line="299" selection-start-column="45" selection-end-line="299" selection-end-column="45" />
-          <folding>
-            <element signature="e#0#12582#0" expanded="false" />
-            <element signature="imports" expanded="false" />
-            <element signature="e#11412#11420#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -677,22 +719,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="144" column="1" selection-start-line="144" selection-start-column="1" selection-end-line="144" selection-end-column="1" />
-          <folding>
-            <element signature="e#0#3188#0" expanded="false" />
-            <element signature="imports" expanded="false" />
-            <element signature="e#1895#1896#0" expanded="false" />
-            <element signature="e#1926#1927#0" expanded="false" />
-            <element signature="e#2073#2074#0" expanded="false" />
-            <element signature="e#2109#2110#0" expanded="false" />
-            <element signature="e#2244#2245#0" expanded="false" />
-            <element signature="e#2277#2278#0" expanded="false" />
-            <element signature="e#2400#2401#0" expanded="false" />
-            <element signature="e#2434#2435#0" expanded="false" />
-            <element signature="e#2589#2590#0" expanded="false" />
-            <element signature="e#2622#2623#0" expanded="false" />
-            <element signature="e#2824#2825#0" expanded="false" />
-            <element signature="e#2868#2869#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -700,14 +727,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="100" column="67" selection-start-line="100" selection-start-column="48" selection-end-line="100" selection-end-column="67" />
-          <folding>
-            <element signature="e#0#6169#0" expanded="false" />
-            <element signature="imports" expanded="false" />
-            <element signature="e#1592#1609#0" expanded="false" />
-            <element signature="e#4037#4047#0" expanded="false" />
-            <element signature="e#4898#4908#0" expanded="false" />
-            <element signature="e#5770#5780#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -715,15 +735,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="5" column="0" selection-start-line="5" selection-start-column="0" selection-end-line="5" selection-end-column="0" />
-          <folding>
-            <element signature="e#0#10148#0" expanded="false" />
-            <element signature="e#2685#2693#0" expanded="false" />
-            <element signature="e#3604#3612#0" expanded="false" />
-            <element signature="e#5487#5495#0" expanded="false" />
-            <element signature="e#5945#5974#0" expanded="false" />
-            <element signature="e#7177#7193#0" expanded="false" />
-            <element signature="e#7392#7421#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -745,10 +757,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="20" column="26" selection-start-line="20" selection-start-column="13" selection-end-line="20" selection-end-column="26" />
-          <folding>
-            <element signature="e#0#3566#0" expanded="false" />
-            <element signature="imports" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -756,15 +765,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="48" column="8" selection-start-line="48" selection-start-column="8" selection-end-line="48" selection-end-column="48" />
-          <folding>
-            <element signature="e#0#10148#0" expanded="false" />
-            <element signature="e#2685#2693#0" expanded="false" />
-            <element signature="e#3604#3612#0" expanded="false" />
-            <element signature="e#5487#5495#0" expanded="false" />
-            <element signature="e#5945#5974#0" expanded="false" />
-            <element signature="e#7177#7193#0" expanded="false" />
-            <element signature="e#7392#7421#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -821,15 +822,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="41" column="35" selection-start-line="41" selection-start-column="29" selection-end-line="41" selection-end-column="35" />
-          <folding>
-            <element signature="e#0#10148#0" expanded="false" />
-            <element signature="e#2685#2693#0" expanded="false" />
-            <element signature="e#3604#3612#0" expanded="false" />
-            <element signature="e#5487#5495#0" expanded="false" />
-            <element signature="e#5945#5974#0" expanded="false" />
-            <element signature="e#7177#7193#0" expanded="false" />
-            <element signature="e#7392#7421#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -852,8 +845,7 @@
         <state relative-caret-position="0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#10813#10842#0" expanded="false" />
-            <element signature="e#10920#10949#0" expanded="false" />
+            <element signature="e#0#20791#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -995,7 +987,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="323">
           <caret line="19" column="1" selection-start-line="19" selection-start-column="1" selection-end-line="19" selection-end-column="1" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1003,7 +994,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="170">
           <caret line="13" column="60" selection-start-line="13" selection-start-column="60" selection-end-line="13" selection-end-column="60" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1011,7 +1001,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="221">
           <caret line="19" column="0" selection-start-line="19" selection-start-column="0" selection-end-line="19" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1019,10 +1008,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1088">
           <caret line="76" column="41" selection-start-line="76" selection-start-column="23" selection-end-line="76" selection-end-column="41" />
-          <folding>
-            <element signature="e#0#3566#0" expanded="false" />
-            <element signature="imports" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -1030,11 +1016,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="4641">
           <caret line="299" column="45" selection-start-line="299" selection-start-column="45" selection-end-line="299" selection-end-column="45" />
-          <folding>
-            <element signature="e#0#12582#0" expanded="false" />
-            <element signature="imports" expanded="false" />
-            <element signature="e#11412#11420#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -1042,37 +1024,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2125">
           <caret line="144" column="1" selection-start-line="144" selection-start-column="1" selection-end-line="144" selection-end-column="1" />
-          <folding>
-            <element signature="e#0#3188#0" expanded="false" />
-            <element signature="imports" expanded="false" />
-            <element signature="e#1895#1896#0" expanded="false" />
-            <element signature="e#1926#1927#0" expanded="false" />
-            <element signature="e#2073#2074#0" expanded="false" />
-            <element signature="e#2109#2110#0" expanded="false" />
-            <element signature="e#2244#2245#0" expanded="false" />
-            <element signature="e#2277#2278#0" expanded="false" />
-            <element signature="e#2400#2401#0" expanded="false" />
-            <element signature="e#2434#2435#0" expanded="false" />
-            <element signature="e#2589#2590#0" expanded="false" />
-            <element signature="e#2622#2623#0" expanded="false" />
-            <element signature="e#2824#2825#0" expanded="false" />
-            <element signature="e#2868#2869#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/main/java/com/microsoft/kafkaavailability/discovery/ServiceUtil.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1343">
-          <caret line="100" column="67" selection-start-line="100" selection-start-column="48" selection-end-line="100" selection-end-column="67" />
-          <folding>
-            <element signature="e#0#6169#0" expanded="false" />
-            <element signature="imports" expanded="false" />
-            <element signature="e#1592#1609#0" expanded="false" />
-            <element signature="e#4037#4047#0" expanded="false" />
-            <element signature="e#4898#4908#0" expanded="false" />
-            <element signature="e#5770#5780#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -1080,57 +1032,29 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2601">
           <caret line="181" column="38" selection-start-line="181" selection-start-column="38" selection-end-line="181" selection-end-column="38" />
-          <folding>
-            <element signature="e#0#10148#0" expanded="false" />
-            <element signature="e#2685#2693#0" expanded="false" />
-            <element signature="e#3604#3612#0" expanded="false" />
-            <element signature="e#5487#5495#0" expanded="false" />
-            <element signature="e#5945#5974#0" expanded="false" />
-            <element signature="e#7177#7193#0" expanded="false" />
-            <element signature="e#7392#7421#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/main/java/com/microsoft/kafkaavailability/App.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="e#10813#10842#0" expanded="false" />
-            <element signature="e#10920#10949#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/main/java/com/microsoft/kafkaavailability/metrics/SqlReporter.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="287">
+        <state relative-caret-position="2601">
           <caret line="172" column="28" selection-start-line="172" selection-start-column="26" selection-end-line="172" selection-end-column="28" />
-          <folding>
-            <element signature="imports" expanded="false" />
-            <element signature="e#1110#1111#0" expanded="false" />
-            <element signature="e#1154#1155#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/main/java/com/microsoft/kafkaavailability/Consumer.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="204">
+        <state relative-caret-position="3978">
           <caret line="256" column="32" selection-start-line="256" selection-start-column="32" selection-end-line="256" selection-end-column="32" />
-          <folding>
-            <element signature="e#0#13597#0" expanded="false" />
-            <element signature="imports" expanded="false" />
-            <element signature="e#2069#2070#0" expanded="false" />
-            <element signature="e#2127#2128#0" expanded="false" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/main/java/com/microsoft/kafkaavailability/metrics/MetricNameEncoded.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="306">
+        <state relative-caret-position="255">
           <caret line="18" column="0" selection-start-line="18" selection-start-column="0" selection-end-line="18" selection-end-column="0" />
           <folding />
         </state>
@@ -1138,8 +1062,26 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/main/java/com/microsoft/kafkaavailability/metrics/AvailabilityGauge.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="153">
-          <caret line="9" column="13" selection-start-line="9" selection-start-column="13" selection-end-line="9" selection-end-column="13" />
+        <state relative-caret-position="102">
+          <caret line="9" column="11" selection-start-line="9" selection-start-column="11" selection-end-line="9" selection-end-column="11" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main/java/com/microsoft/kafkaavailability/App.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="447">
+          <caret line="366" column="0" selection-start-line="366" selection-start-column="0" selection-end-line="366" selection-end-column="0" />
+          <folding>
+            <element signature="e#0#20791#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main/java/com/microsoft/kafkaavailability/discovery/ServiceUtil.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="858">
+          <caret line="100" column="67" selection-start-line="100" selection-start-column="48" selection-end-line="100" selection-end-column="67" />
           <folding />
         </state>
       </provider>
