@@ -300,6 +300,7 @@ public class App {
                 } catch (Exception e) {
                     m_logger.error("Error Writing to Topic: {}; Partition: {}; Exception: {}", item.topic(), part.partitionId(), e);
                     producerFailCount++;
+
                     //now add a minute, 60000 milliseconds = 1 minute
                     long halfAnHourLater = System.currentTimeMillis() + 60000;
                     endTime = halfAnHourLater;
@@ -363,6 +364,7 @@ public class App {
                 } catch (Exception e) {
                     m_logger.error("Error Reading from Topic: {}; Partition: {}; Exception: {}", item.topic(), part.partitionId(), e);
                     consumerFailCount++;
+
                     //now add a minute, 60000 milliseconds = 1 minute
                     long halfAnHourLater = System.currentTimeMillis() + 60000;
                     endTime = halfAnHourLater;
