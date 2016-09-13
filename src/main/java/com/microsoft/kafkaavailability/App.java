@@ -47,7 +47,7 @@ import java.util.List;
  */
 public class App {
     final static Logger m_logger = LoggerFactory.getLogger(App.class);
-    static int m_sleepTime = 60000;
+    static int m_sleepTime = 30000;
     static String m_cluster = "localhost";
     static MetricRegistry m_metrics;
     static AppProperties appProperties;
@@ -199,7 +199,6 @@ public class App {
                     .build(new File(appProperties.csvDirectory));
             csvReporter.start(reportDuration, TimeUnit.MILLISECONDS);
         }
-        //return m_metrics;
     }
 
 
@@ -301,8 +300,8 @@ public class App {
                 } catch (Exception e) {
                     m_logger.error("Error Writing to Topic: {}; Partition: {}; Exception: {}", item.topic(), part.partitionId(), e);
                     producerFailCount++;
-                    //now add half an hour, 1 800 000 milliseconds = 30 minutes
-                    long halfAnHourLater = System.currentTimeMillis() + 1800000;
+                    //now add a minute, 60000 milliseconds = 1 minute
+                    long halfAnHourLater = System.currentTimeMillis() + 60000;
                     endTime = halfAnHourLater;
                 }
                 histogramProducerLatency.update(endTime - startTime);
@@ -364,8 +363,8 @@ public class App {
                 } catch (Exception e) {
                     m_logger.error("Error Reading from Topic: {}; Partition: {}; Exception: {}", item.topic(), part.partitionId(), e);
                     consumerFailCount++;
-                    //now add half an hour, 1 800 000 milliseconds = 30 minutes
-                    long halfAnHourLater = System.currentTimeMillis() + 1800000;
+                    //now add a minute, 60000 milliseconds = 1 minute
+                    long halfAnHourLater = System.currentTimeMillis() + 60000;
                     endTime = halfAnHourLater;
                     consumerFailCount++;
                 }
