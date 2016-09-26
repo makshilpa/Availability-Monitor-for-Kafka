@@ -115,8 +115,8 @@ public class Producer implements IProducer
                 con.setRequestProperty("Content-Type", "application/octet-stream");
                 con.setUseCaches(false);
                 String urlParameters = producerProperties.messageStart + new Date().getTime() + ",www.example.com,";
-                m_logger.info("Sending 'POST' request to URL : " + kafkaIP + topicName);
-                m_logger.info("Post parameters : " + urlParameters);
+                m_logger.debug("Sending 'POST' request to URL : " + kafkaIP + topicName);
+                m_logger.debug("Post parameters : " + urlParameters);
 
 
                 // Send post request
@@ -128,19 +128,18 @@ public class Producer implements IProducer
 
                 int responseCode = con.getResponseCode();
 
-                m_logger.info("Response Code : " + responseCode);
+                m_logger.debug("Response Code : " + responseCode);
                 BufferedReader in = new BufferedReader(
                         new InputStreamReader(con.getInputStream()));
                 String inputLine;
                 StringBuffer response = new StringBuffer();
-
 
                 while ((inputLine = in.readLine()) != null) {
                     response.append(inputLine);
                 }
                 in.close();
                 //print result
-                m_logger.info(response.toString());
+                m_logger.debug(response.toString());
                 break;
             } catch (Exception e) {
                 m_logger.error(e.getMessage(), e);
