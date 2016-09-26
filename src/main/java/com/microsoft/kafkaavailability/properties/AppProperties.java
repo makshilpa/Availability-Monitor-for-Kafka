@@ -29,5 +29,8 @@ public class AppProperties
     public boolean sendConsumerTopicLatency;
     public boolean sendProducerPartitionLatency;
     public boolean sendConsumerPartitionLatency;
+    public int producerThreadSleepTime;
+    public int leaderInfoThreadSleepTime;
+    public int availabilityThreadSleepTime;
     public String csvDirectory;
 }

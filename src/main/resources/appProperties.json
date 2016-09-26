@@ -18,6 +18,9 @@
   "sendProducerTopicLatency": true,
   "sendConsumerTopicLatency": true,
   "sendProducerPartitionLatency": true,
-  "sendConsumerPartitionLatency": true
+  "sendConsumerPartitionLatency": true,
+  "availabilityThreadSleepTime": 60000,
+  "leaderInfoThreadSleepTime": 300000,
+  "producerThreadSleepTime": 60000
   //"csvDirectory": ""
 }

@@ -32,13 +32,15 @@ public class AvailabilityThread implements Runnable {
     Phaser m_phaser;
     CuratorFramework m_curatorFramework;
     MetricRegistry m_metrics;
+    int m_threadSleepTime;
 
-    public AvailabilityThread(Phaser phaser, CuratorFramework curatorFramework, MetricRegistry metrics) {
+    public AvailabilityThread(Phaser phaser, CuratorFramework curatorFramework, MetricRegistry metrics, int threadSleepTime) {
         this.m_phaser = phaser;
         this.m_curatorFramework = curatorFramework;
         //this.m_phaser.register(); //Registers/Add a new unArrived party to this phaser.
         //CommonUtils.dumpPhaserState("After register", phaser);
         m_metrics = metrics;
+        m_threadSleepTime = threadSleepTime;
     }
 
     @Override
@@ -58,8 +60,8 @@ public class AvailabilityThread implements Runnable {
             }
             long elapsedTime = CommonUtils.stopWatch(lStartTime);
             m_logger.info("Availability Elapsed: " + elapsedTime + " milliseconds.");
-            //Run Availability every minute.
-            while (elapsedTime < 60000 && !m_phaser.isTerminated()) {
+
+            while (elapsedTime < m_threadSleepTime && !m_phaser.isTerminated()) {
                 try {
                     Thread.currentThread().sleep(sleepDuration);
                     elapsedTime = elapsedTime + sleepDuration;

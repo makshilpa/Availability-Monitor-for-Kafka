@@ -20,10 +20,12 @@ public class LeaderInfoThread implements Runnable {
     final static Logger m_logger = LoggerFactory.getLogger(LeaderInfoThread.class);
     Phaser m_phaser;
     CuratorFramework m_curatorFramework;
+    int m_threadSleepTime;
 
-    public LeaderInfoThread(Phaser phaser, CuratorFramework curatorFramework) {
+    public LeaderInfoThread(Phaser phaser, CuratorFramework curatorFramework, int threadSleepTime) {
         this.m_phaser = phaser;
         this.m_curatorFramework = curatorFramework;
+        this.m_threadSleepTime = threadSleepTime;
         //this.m_phaser.register(); //Registers/Add a new unArrived party to this phaser.
         //CommonUtils.dumpPhaserState("After registration of LeaderInfoThread", phaser);
     }
@@ -44,8 +46,8 @@ public class LeaderInfoThread implements Runnable {
             }
             long elapsedTime = CommonUtils.stopWatch(lStartTime);
             m_logger.info("LeaderInfo Elapsed: " + elapsedTime + " milliseconds.");
-            //Run LeaderInfo every 5 minutes.
-            while (elapsedTime < 600000 && !m_phaser.isTerminated()) {
+
+            while (elapsedTime < m_threadSleepTime && !m_phaser.isTerminated()) {
                 try {
                     Thread.currentThread().sleep(sleepDuration);
                     elapsedTime = elapsedTime + sleepDuration;

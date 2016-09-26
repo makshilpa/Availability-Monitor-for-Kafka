@@ -231,9 +231,18 @@ public class App {
             }
         };
 
-        Thread leaderInfoThread = new Thread(new LeaderInfoThread(phaser, curatorFramework), "LeaderInfoThread-1");
-        Thread producerThread = new Thread(new ProducerThread(phaser, curatorFramework, m_metrics), "ProducerThread-1");
-        Thread availabilityThread = new Thread(new AvailabilityThread(phaser, curatorFramework, m_metrics), "AvailabilityThread-1");
+        //default to 1 minute, if not configured
+        int producerThreadSleepTime = (appProperties.producerThreadSleepTime > 0 ? appProperties.producerThreadSleepTime : 60000);
+
+        //default to 1 minute, if not configured
+        int availabilityThreadSleepTime = (appProperties.availabilityThreadSleepTime > 0 ? appProperties.availabilityThreadSleepTime : 60000);
+
+        //default to 5 minutes, if not configured
+        int leaderInfoThreadSleepTime = (appProperties.leaderInfoThreadSleepTime > 0 ? appProperties.leaderInfoThreadSleepTime : 300000);
+
+        Thread leaderInfoThread = new Thread(new LeaderInfoThread(phaser, curatorFramework, leaderInfoThreadSleepTime), "LeaderInfoThread-1");
+        Thread producerThread = new Thread(new ProducerThread(phaser, curatorFramework, m_metrics, producerThreadSleepTime), "ProducerThread-1");
+        Thread availabilityThread = new Thread(new AvailabilityThread(phaser, curatorFramework, m_metrics, availabilityThreadSleepTime), "AvailabilityThread-1");
         Thread consumerThread = new Thread(new ConsumerThread(phaser, curatorFramework, m_metrics, listServers, serviceSpec), "ConsumerThread-1");
 
         leaderInfoThread.start();
