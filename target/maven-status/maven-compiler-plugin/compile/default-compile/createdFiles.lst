@@ -1,10 +1,12 @@
 com\microsoft\kafkaavailability\metrics\SqlReporter$Builder.class
 com\microsoft\kafkaavailability\discovery\CommonUtils.class
+com\microsoft\kafkaavailability\threads\ConsumerThread.class
 com\microsoft\kafkaavailability\properties\MetaDataManagerProperties.class
 com\microsoft\kafkaavailability\IMetaDataManager.class
 com\microsoft\kafkaavailability\Consumer.class
 com\microsoft\kafkaavailability\discovery\Constants.class
 com\microsoft\kafkaavailability\BrokerInfo.class
+com\microsoft\kafkaavailability\threads\AvailabilityThread.class
 com\microsoft\kafkaavailability\metrics\AvailabilityGauge.class
 com\microsoft\kafkaavailability\metrics\SqlReporter.class
 com\microsoft\kafkaavailability\metrics\SqlReporter$1.class
@@ -12,6 +14,7 @@ com\microsoft\kafkaavailability\TopicPartition.class
 com\microsoft\kafkaavailability\Producer$2.class
 com\microsoft\kafkaavailability\MetaDataManager.class
 com\microsoft\kafkaavailability\KafkaUtils.class
+com\microsoft\kafkaavailability\threads\ProducerThread.class
 com\microsoft\kafkaavailability\properties\ConsumerProperties.class
 com\microsoft\kafkaavailability\IConsumer.class
 com\microsoft\kafkaavailability\discovery\ServiceUtil.class
@@ -23,6 +26,7 @@ com\microsoft\kafkaavailability\Producer.class
 com\microsoft\kafkaavailability\properties\ProducerProperties.class
 com\microsoft\kafkaavailability\properties\AppProperties.class
 com\microsoft\kafkaavailability\App$1.class
+com\microsoft\kafkaavailability\App$2.class
 com\microsoft\kafkaavailability\TopicMetadataComparator.class
 com\microsoft\kafkaavailability\discovery\CuratorClient.class
 com\microsoft\kafkaavailability\IProducer.class
@@ -32,4 +36,5 @@ com\microsoft\kafkaavailability\metrics\MetricNameEncoded.class
 com\microsoft\kafkaavailability\KafkaError.class
 com\microsoft\kafkaavailability\SimplePartitioner.class
 com\microsoft\kafkaavailability\App.class
+com\microsoft\kafkaavailability\threads\LeaderInfoThread.class
 com\microsoft\kafkaavailability\MetaDataManagerException.class

@@ -1,6 +1,8 @@
-C:\TFS\Github\KafkaAvailability\Availability-Monitor-for-Kafka\src\main\java\com\microsoft\kafkaavailability\discovery\CommonUtils.java
 C:\TFS\Github\KafkaAvailability\Availability-Monitor-for-Kafka\src\main\java\com\microsoft\kafkaavailability\BrokerInfo.java
+C:\TFS\Github\KafkaAvailability\Availability-Monitor-for-Kafka\src\main\java\com\microsoft\kafkaavailability\discovery\CommonUtils.java
+C:\TFS\Github\KafkaAvailability\Availability-Monitor-for-Kafka\src\main\java\com\microsoft\kafkaavailability\threads\ConsumerThread.java
 C:\TFS\Github\KafkaAvailability\Availability-Monitor-for-Kafka\src\main\java\com\microsoft\kafkaavailability\discovery\ServiceUtil.java
+C:\TFS\Github\KafkaAvailability\Availability-Monitor-for-Kafka\src\main\java\com\microsoft\kafkaavailability\threads\AvailabilityThread.java
 C:\TFS\Github\KafkaAvailability\Availability-Monitor-for-Kafka\src\main\java\com\microsoft\kafkaavailability\TopicPartition.java
 C:\TFS\Github\KafkaAvailability\Availability-Monitor-for-Kafka\src\main\java\com\microsoft\kafkaavailability\properties\MetaDataManagerProperties.java
 C:\TFS\Github\KafkaAvailability\Availability-Monitor-for-Kafka\src\main\java\com\microsoft\kafkaavailability\IMetaDataManager.java
@@ -9,13 +11,15 @@ C:\TFS\Github\KafkaAvailability\Availability-Monitor-for-Kafka\src\main\java\com
 C:\TFS\Github\KafkaAvailability\Availability-Monitor-for-Kafka\src\main\java\com\microsoft\kafkaavailability\PropertiesManager.java
 C:\TFS\Github\KafkaAvailability\Availability-Monitor-for-Kafka\src\main\java\com\microsoft\kafkaavailability\discovery\CuratorManager.java
 C:\TFS\Github\KafkaAvailability\Availability-Monitor-for-Kafka\src\main\java\com\microsoft\kafkaavailability\properties\ProducerProperties.java
+C:\TFS\Github\KafkaAvailability\Availability-Monitor-for-Kafka\src\main\java\com\microsoft\kafkaavailability\threads\LeaderInfoThread.java
+C:\TFS\Github\KafkaAvailability\Availability-Monitor-for-Kafka\src\main\java\com\microsoft\kafkaavailability\threads\ProducerThread.java
 C:\TFS\Github\KafkaAvailability\Availability-Monitor-for-Kafka\src\main\java\com\microsoft\kafkaavailability\properties\ConsumerProperties.java
 C:\TFS\Github\KafkaAvailability\Availability-Monitor-for-Kafka\src\main\java\com\microsoft\kafkaavailability\SimplePartitioner.java
 C:\TFS\Github\KafkaAvailability\Availability-Monitor-for-Kafka\src\main\java\com\microsoft\kafkaavailability\discovery\Constants.java
 C:\TFS\Github\KafkaAvailability\Availability-Monitor-for-Kafka\src\main\java\com\microsoft\kafkaavailability\IConsumer.java
 C:\TFS\Github\KafkaAvailability\Availability-Monitor-for-Kafka\src\main\java\com\microsoft\kafkaavailability\metrics\MetricNameEncoded.java
-C:\TFS\Github\KafkaAvailability\Availability-Monitor-for-Kafka\src\main\java\com\microsoft\kafkaavailability\App.java
 C:\TFS\Github\KafkaAvailability\Availability-Monitor-for-Kafka\src\main\java\com\microsoft\kafkaavailability\metrics\SqlReporter.java
+C:\TFS\Github\KafkaAvailability\Availability-Monitor-for-Kafka\src\main\java\com\microsoft\kafkaavailability\App.java
 C:\TFS\Github\KafkaAvailability\Availability-Monitor-for-Kafka\src\main\java\com\microsoft\kafkaavailability\IPropertiesManager.java
 C:\TFS\Github\KafkaAvailability\Availability-Monitor-for-Kafka\src\main\java\com\microsoft\kafkaavailability\discovery\MetaData.java
 C:\TFS\Github\KafkaAvailability\Availability-Monitor-for-Kafka\src\main\java\com\microsoft\kafkaavailability\Consumer.java
@@ -24,6 +28,6 @@ C:\TFS\Github\KafkaAvailability\Availability-Monitor-for-Kafka\src\main\java\com
 C:\TFS\Github\KafkaAvailability\Availability-Monitor-for-Kafka\src\main\java\com\microsoft\kafkaavailability\Producer.java
 C:\TFS\Github\KafkaAvailability\Availability-Monitor-for-Kafka\src\main\java\com\microsoft\kafkaavailability\KafkaUtils.java
 C:\TFS\Github\KafkaAvailability\Availability-Monitor-for-Kafka\src\main\java\com\microsoft\kafkaavailability\TopicMetadataComparator.java
-C:\TFS\Github\KafkaAvailability\Availability-Monitor-for-Kafka\src\main\java\com\microsoft\kafkaavailability\MetaDataManagerException.java
 C:\TFS\Github\KafkaAvailability\Availability-Monitor-for-Kafka\src\main\java\com\microsoft\kafkaavailability\IProducer.java
+C:\TFS\Github\KafkaAvailability\Availability-Monitor-for-Kafka\src\main\java\com\microsoft\kafkaavailability\MetaDataManagerException.java
 C:\TFS\Github\KafkaAvailability\Availability-Monitor-for-Kafka\src\main\java\com\microsoft\kafkaavailability\metrics\AvailabilityGauge.java
