@@ -7,6 +7,8 @@ package com.microsoft.kafkaavailability.discovery;
 
 import java.net.InetAddress;
 import java.util.Set;
+import java.util.concurrent.Phaser;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import com.codahale.metrics.*;
 import com.google.common.collect.ImmutableSet;
@@ -55,5 +57,27 @@ public class CommonUtils {
             }
         });
         return totalRemoved.get();
+    }
+
+    /**
+     * Method to measure elapsed time since start time until now
+     *
+     * Example:
+     * long startup = System.nanoTime();
+     * Thread.sleep(3000);
+     * System.out.println("This took " + stopWatch(startup) + " milliseconds.");
+     *
+     * @param startTime Time of start in Nanoseconds
+     * @return Elapsed time in seconds as double
+     */
+    public static long stopWatch(long startTime) {
+        long elapsedTime = System.nanoTime()-startTime;
+        return TimeUnit.MILLISECONDS.convert(elapsedTime, TimeUnit.NANOSECONDS);
+    }
+
+    public static void dumpPhaserState(String when, Phaser phaser) {
+        log.info(when + " -> Registered: " + phaser.getRegisteredParties() + " - Unarrived: "
+                + phaser.getUnarrivedParties() + " - Arrived: " + phaser.getArrivedParties() + " - Phase: "
+                + phaser.getPhase());
     }
 }
