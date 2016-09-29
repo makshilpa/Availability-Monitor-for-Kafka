@@ -136,7 +136,7 @@ public final class CuratorManager {
     public CuratorManager registerLocalService() throws Exception {
 
         if (active.getAndSet(true)) {
-            throw new IllegalStateException("This client instance is already availabile.");
+            throw new IllegalStateException("This client instance is already available.");
         }
 
         try {

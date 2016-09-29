@@ -5,37 +5,27 @@
 
 package com.microsoft.kafkaavailability;
 
-import com.microsoft.kafkaavailability.metrics.AvailabilityGauge;
-import com.microsoft.kafkaavailability.metrics.MetricNameEncoded;
 import com.microsoft.kafkaavailability.metrics.SqlReporter;
 import com.microsoft.kafkaavailability.properties.AppProperties;
-import com.microsoft.kafkaavailability.properties.ConsumerProperties;
 import com.microsoft.kafkaavailability.properties.MetaDataManagerProperties;
-import com.microsoft.kafkaavailability.properties.ProducerProperties;
-import com.google.gson.Gson;
 import org.apache.commons.cli.*;
 import org.apache.log4j.MDC;
-import org.apache.log4j.net.SyslogAppender;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.codahale.metrics.*;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.imps.CuratorFrameworkState;
-import org.apache.curator.x.discovery.ServiceInstance;
 import com.microsoft.kafkaavailability.discovery.Constants;
 import com.microsoft.kafkaavailability.discovery.CuratorManager;
 import com.microsoft.kafkaavailability.discovery.CuratorClient;
 import com.microsoft.kafkaavailability.discovery.CommonUtils;
-import com.microsoft.kafkaavailability.discovery.MetaData;
+import com.microsoft.kafkaavailability.threads.*;
 
 import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
+import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
 import java.util.List;
 
@@ -47,18 +37,17 @@ import java.util.List;
  */
 public class App {
     final static Logger m_logger = LoggerFactory.getLogger(App.class);
-    static int m_sleepTime = 60000;
+    static int m_sleepTime = 30000;
     static String m_cluster = "localhost";
     static MetricRegistry m_metrics;
     static AppProperties appProperties;
     static MetaDataManagerProperties metaDataProperties;
-    static Collection<ServiceInstance<MetaData>> instances;
     static List<String> listServers;
 
     private static String registrationPath = Constants.DEFAULT_REGISTRATION_ROOT;
     private static String ip = CommonUtils.getIpAddress();
+    private static String computerName = CommonUtils.getComputerName();
     private static String serviceSpec = "";
-
 
     public static void main(String[] args) throws IOException, MetaDataManagerException, InterruptedException {
         m_logger.info("Starting KafkaAvailability Tool");
@@ -67,8 +56,8 @@ public class App {
         appProperties = (AppProperties) appPropertiesManager.getProperties();
         metaDataProperties = (MetaDataManagerProperties) metaDataPropertiesManager.getProperties();
         Options options = new Options();
-        options.addOption("r", "run", true, "Number of runs. Don't use this argument if you want to run infintely.");
-        options.addOption("s", "sleep", true, "Time (in milliseconds) to sleep between each run. Default is 120000");
+        options.addOption("r", "run", true, "Number of runs. Don't use this argument if you want to run infinitely.");
+        options.addOption("s", "sleep", true, "Time (in milliseconds) to sleep between each run. Default is 30000");
         Option clusterOption = Option.builder("c").hasArg().required(true).longOpt("cluster").desc("(REQUIRED) Cluster name").build();
         options.addOption(clusterOption);
         CommandLineParser parser = new DefaultParser();
@@ -82,6 +71,8 @@ public class App {
 
             m_cluster = line.getOptionValue("cluster");
             MDC.put("cluster", m_cluster);
+
+            MDC.put("computerName", computerName);
             CuratorManager curatorManager = CallRegister(curatorFramework);
 
             if (line.hasOption("sleep")) {
@@ -111,7 +102,8 @@ public class App {
         } catch (Exception e) {
             m_logger.error(e.getMessage(), e);
         }
-
+        //used to run shutdown hooks before the program quits. The shutdown hooks (if properly set up) take care of doing all necessary shutdown ceremonies such as closing files, releasing resources etc.
+        System.exit(0);
     }
 
 
@@ -120,7 +112,7 @@ public class App {
         serviceSpec = ip + ":" + Integer.valueOf(port).toString();
 
         String basePath = new StringBuilder().append(registrationPath).toString();
-        m_logger.info("Creating client, KAT");
+        m_logger.info("Creating client, KAT in the Environment:" + m_cluster);
 
         final CuratorManager curatorManager = new CuratorManager(curatorFramework, basePath, ip, serviceSpec);
 
@@ -147,11 +139,10 @@ public class App {
     private static void waitForChanges(CuratorManager curatorManager) throws Exception {
 
         try {
-            listServers = curatorManager.listServiceInstance();
-            m_logger.info("listServers:" + Arrays.toString(listServers.toArray()));
-
             //wait for rest clients to warm up.
-            Thread.sleep(30000);
+            Thread.sleep(5000);
+            listServers = curatorManager.listServiceInstance();
+            m_logger.info("Environment Name:" + m_cluster  + ". List of KAT Clients:" + Arrays.toString(listServers.toArray()));
 
             curatorManager.verifyRegistrations();
         } catch (Exception e) {
@@ -199,198 +190,95 @@ public class App {
                     .build(new File(appProperties.csvDirectory));
             csvReporter.start(reportDuration, TimeUnit.MILLISECONDS);
         }
-        //return m_metrics;
     }
 
 
     private static void RunOnce(CuratorFramework curatorFramework) throws IOException, MetaDataManagerException {
-        IPropertiesManager producerPropertiesManager = new PropertiesManager<ProducerProperties>("producerProperties.json", ProducerProperties.class);
-        IPropertiesManager metaDataPropertiesManager = new PropertiesManager<MetaDataManagerProperties>("metadatamanagerProperties.json", MetaDataManagerProperties.class);
-        IPropertiesManager consumerPropertiesManager = new PropertiesManager<ConsumerProperties>("consumerProperties.json", ConsumerProperties.class);
-        IMetaDataManager metaDataManager = new MetaDataManager(curatorFramework, metaDataPropertiesManager);
-        IProducer producer = new Producer(producerPropertiesManager, metaDataManager);
-        IConsumer consumer = new Consumer(consumerPropertiesManager, metaDataManager);
 
-        int producerTryCount = 0, clusterIPStatusTryCount = 0, gtmIPStatusTryCount = 0;
-        int producerFailCount = 0, clusterIPStatusFailCount = 0, gtmIPStatusFailCount = 0;
-        long startTime, endTime;
-        int numPartitionsProducer = 0, numPartitionsConsumers = 0;
-        //Auto creating a whitelisted topics, if not available.
-        metaDataManager.createWhiteListedTopics();
-        m_logger.info("get metadata size");
+        /** The phaser is a nice synchronization barrier. */
+        final Phaser phaser = new Phaser(1) {
+            /**
+             *
+             * Every time before advancing to next phase overridden
+             * onAdvance() method is called and returns either true or false.
+             * onAdvance() is invoked when all threads reached the synchronization barrier. It returns true if the
+             * phaser should terminate, false if phaser should continue with next phase. When terminated: (1) attempts
+             * to register new parties have no effect and (2) synchronization methods immediately return without waiting
+             * for advance. When continue:
+             *
+             * <pre>
+             *       -> set unarrived parties = registered parties
+             *       -> set arrived parties = 0
+             *       -> set phase = phase + 1
+             * </pre>
+             *
+             * This causes another iteration for all thread parties in a new phase (cycle).
+             *
+             */
+            protected boolean onAdvance(int phase, int registeredParties) {
+                m_logger.info("onAdvance() method" + " -> Registered: " + getRegisteredParties() + " - Unarrived: "
+                        + getUnarrivedParties() + " - Arrived: " + getArrivedParties() + " - Phase: " + getPhase());
 
-        //This is full list of topics
-        List<kafka.javaapi.TopicMetadata> totalTopicMetadata = metaDataManager.getAllTopicPartition();
+            /*return true after completing phase-1 or
+            * if  number of registeredParties become 0
+            */
 
-        //Collections.sort(totalTopicMetadata, new TopicMetadataComparator());
-
-        List<kafka.javaapi.TopicMetadata> whiteListTopicMetadata = new ArrayList<kafka.javaapi.TopicMetadata>();
-        List<kafka.javaapi.TopicMetadata> allTopicMetadata = new ArrayList<kafka.javaapi.TopicMetadata>();
-
-        for (kafka.javaapi.TopicMetadata topic : totalTopicMetadata) {
-            for (String whiteListTopic : metaDataProperties.topicsWhitelist)
-                // java string compare while ignoring case
-                if (topic.topic().equalsIgnoreCase(whiteListTopic)) {
-                    whiteListTopicMetadata.add(topic);
-                }
-            if ((totalTopicMetadata.indexOf(topic) % listServers.size()) == listServers.indexOf(serviceSpec)) {
-                allTopicMetadata.add(topic);
-            }
-        }
-
-        m_logger.info("totalTopicMetadata size:" + totalTopicMetadata.size());
-        m_logger.info("whiteListTopicMetadata size:" + whiteListTopicMetadata.size());
-        m_logger.info("allTopicMetadata size:" + allTopicMetadata.size());
-
-        m_logger.info("Starting ProducerLatency");
-
-        m_logger.info("done getting metadata size for producer");
-        for (kafka.javaapi.TopicMetadata topic : whiteListTopicMetadata) {
-            numPartitionsProducer += topic.partitionsMetadata().size();
-        }
-
-        final SlidingWindowReservoir producerLatencyWindow = new SlidingWindowReservoir(numPartitionsProducer);
-        Histogram histogramProducerLatency = new Histogram(producerLatencyWindow);
-        MetricNameEncoded producerLatency = new MetricNameEncoded("Producer.Latency", "all");
-        if (appProperties.sendProducerLatency)
-            m_metrics.register(new Gson().toJson(producerLatency), histogramProducerLatency);
-        m_logger.info("start topic partition loop");
-
-        for (kafka.javaapi.TopicMetadata item : whiteListTopicMetadata) {
-            m_logger.info("Starting VIP prop check." + appProperties.reportKafkaIPAvailability);
-            if (appProperties.reportKafkaIPAvailability) {
-                try {
-                    m_logger.info("Starting VIP check.");
-                    clusterIPStatusTryCount++;
-                    producer.SendCanaryToKafkaIP(appProperties.kafkaClusterIP, item.topic(), false);
-                } catch (Exception e) {
-                    m_logger.info("VIP check exception");
-                    clusterIPStatusFailCount++;
-                    m_logger.error("ClusterIPStatus -- Error Writing to Topic: {}; Exception: {}", item.topic(), e);
-                }
-                try {
-                    gtmIPStatusTryCount++;
-                    producer.SendCanaryToKafkaIP(appProperties.kafkaGTMIP, item.topic(), false);
-                } catch (Exception e) {
-                    gtmIPStatusFailCount++;
-                    m_logger.error("GTMIPStatus -- Error Writing to Topic: {}; Exception: {}", item.topic(), e);
+                if (phase == 0) {
+                    m_logger.info("onAdvance() method, returning true, hence phaser will terminate");
+                    return true;
+                } else {
+                    m_logger.info("onAdvance() method, returning false, hence phaser will continue");
+                    return false;
                 }
             }
-            m_logger.info("done with VIP prop check.");
-            final SlidingWindowReservoir topicLatency = new SlidingWindowReservoir(item.partitionsMetadata().size());
-            Histogram histogramProducerTopicLatency = new Histogram(topicLatency);
-            MetricNameEncoded producerTopicLatency = new MetricNameEncoded("Producer.Topic.Latency", item.topic());
-            if (!m_metrics.getNames().contains(new Gson().toJson(producerTopicLatency))) {
-                if (appProperties.sendProducerTopicLatency)
-                    m_metrics.register(new Gson().toJson(producerTopicLatency), histogramProducerTopicLatency);
-            }
+        };
 
-            for (kafka.javaapi.PartitionMetadata part : item.partitionsMetadata()) {
-                m_logger.debug("Writing to Topic: {}; Partition: {};", item.topic(), part.partitionId());
-                MetricNameEncoded producerPartitionLatency = new MetricNameEncoded("Producer.Partition.Latency", item.topic() + "-" + part.partitionId());
-                Histogram histogramProducerPartitionLatency = new Histogram(new SlidingWindowReservoir(1));
-                if (!m_metrics.getNames().contains(new Gson().toJson(producerPartitionLatency))) {
-                    if (appProperties.sendProducerPartitionLatency)
-                        m_metrics.register(new Gson().toJson(producerPartitionLatency), histogramProducerPartitionLatency);
-                }
-                startTime = System.currentTimeMillis();
-                try {
-                    producerTryCount++;
-                    producer.SendCanaryToTopicPartition(item.topic(), Integer.toString(part.partitionId()));
-                    endTime = System.currentTimeMillis();
-                } catch (Exception e) {
-                    m_logger.error("Error Writing to Topic: {}; Partition: {}; Exception: {}", item.topic(), part.partitionId(), e);
-                    producerFailCount++;
-<<<<<<< HEAD
-                    //now add half an hour, 1 800 000 miliseconds = 30 minutes
-=======
-                    //now add half an hour, 1 800 000 milliseconds = 30 minutes
->>>>>>> KafkaAvailability_log4j
-                    long halfAnHourLater = System.currentTimeMillis() + 1800000;
-                    endTime = halfAnHourLater;
-                }
-                histogramProducerLatency.update(endTime - startTime);
-                histogramProducerTopicLatency.update(endTime - startTime);
-                histogramProducerPartitionLatency.update(endTime - startTime);
-            }
-        }
-        if (appProperties.reportKafkaIPAvailability) {
-            m_logger.info("About to report kafkaIPAvail:" + clusterIPStatusTryCount + " " + clusterIPStatusFailCount);
-            MetricNameEncoded kafkaClusterIPAvailability = new MetricNameEncoded("KafkaIP.Availability", "all");
-            m_metrics.register(new Gson().toJson(kafkaClusterIPAvailability), new AvailabilityGauge(clusterIPStatusTryCount, clusterIPStatusTryCount - clusterIPStatusFailCount));
-            MetricNameEncoded kafkaGTMIPAvailability = new MetricNameEncoded("KafkaGTMIP.Availability", "all");
-            m_metrics.register(new Gson().toJson(kafkaGTMIPAvailability), new AvailabilityGauge(gtmIPStatusTryCount, gtmIPStatusTryCount - gtmIPStatusFailCount));
-        }
-        if (appProperties.sendProducerAvailability) {
-            MetricNameEncoded producerAvailability = new MetricNameEncoded("Producer.Availability", "all");
-            m_metrics.register(new Gson().toJson(producerAvailability), new AvailabilityGauge(producerTryCount, producerTryCount - producerFailCount));
+        //default to 1 minute, if not configured
+        int producerThreadSleepTime = (appProperties.producerThreadSleepTime > 0 ? appProperties.producerThreadSleepTime : 60000);
+
+        //default to 1 minute, if not configured
+        int availabilityThreadSleepTime = (appProperties.availabilityThreadSleepTime > 0 ? appProperties.availabilityThreadSleepTime : 60000);
+
+        //default to 5 minutes, if not configured
+        int leaderInfoThreadSleepTime = (appProperties.leaderInfoThreadSleepTime > 0 ? appProperties.leaderInfoThreadSleepTime : 300000);
+
+        Thread leaderInfoThread = new Thread(new LeaderInfoThread(phaser, curatorFramework, leaderInfoThreadSleepTime), "LeaderInfoThread-1");
+        Thread producerThread = new Thread(new ProducerThread(phaser, curatorFramework, m_metrics, producerThreadSleepTime), "ProducerThread-1");
+        Thread availabilityThread = new Thread(new AvailabilityThread(phaser, curatorFramework, m_metrics, availabilityThreadSleepTime), "AvailabilityThread-1");
+        Thread consumerThread = new Thread(new ConsumerThread(phaser, curatorFramework, m_metrics, listServers, serviceSpec), "ConsumerThread-1");
+
+        leaderInfoThread.start();
+        producerThread.start();
+        availabilityThread.start();
+        consumerThread.start();
+
+        CommonUtils.dumpPhaserState("Before main thread arrives and deregisters", phaser);
+        //Wait for the consumer thread to finish, Rest other thread keep running while the consumer thread is executing.
+        while (!phaser.isTerminated()) {
+            //get current phase
+            int currentPhase = phaser.getPhase();
+                  /*arriveAndAwaitAdvance() will cause thread to wait until current phase
+                   * has been completed i.e. until all registered threads
+                   * call arriveAndAwaitAdvance()
+                   */
+            phaser.arriveAndAwaitAdvance();
+            m_logger.info("------Phase-" + currentPhase + " has been COMPLETED----------");
         }
 
-        int consumerTryCount = 0;
-        int consumerFailCount = 0;
+        /**
+         * When the final party for a given phase arrives, onAdvance() is invoked and the phase advances. The
+         * "face advances" means that all threads reached the barrier and therefore all threads are synchronized and can
+         * continue processing.
+         */
 
-        m_logger.info("done getting metadata size for consumer");
-
-        for (kafka.javaapi.TopicMetadata topic : allTopicMetadata) {
-            numPartitionsConsumers += topic.partitionsMetadata().size();
-        }
-
-        final SlidingWindowReservoir consumerLatencyWindow = new SlidingWindowReservoir(numPartitionsConsumers);
-        Histogram histogramConsumerLatency = new Histogram(consumerLatencyWindow);
-
-        if (appProperties.sendConsumerLatency) {
-            MetricNameEncoded consumerLatency = new MetricNameEncoded("Consumer.Latency", "all");
-            m_metrics.register(new Gson().toJson(consumerLatency), histogramConsumerLatency);
-        }
-        for (kafka.javaapi.TopicMetadata item : allTopicMetadata) {
-            final SlidingWindowReservoir topicLatency = new SlidingWindowReservoir(item.partitionsMetadata().size());
-            Histogram histogramConsumerTopicLatency = new Histogram(topicLatency);
-            MetricNameEncoded consumerTopicLatency = new MetricNameEncoded("Consumer.Topic.Latency", item.topic());
-            if (!m_metrics.getNames().contains(new Gson().toJson(consumerTopicLatency))) {
-                if (appProperties.sendConsumerTopicLatency)
-                    m_metrics.register(new Gson().toJson(consumerTopicLatency), histogramConsumerTopicLatency);
-            }
-
-            for (kafka.javaapi.PartitionMetadata part : item.partitionsMetadata()) {
-                m_logger.debug("Reading from Topic: {}; Partition: {};", item.topic(), part.partitionId());
-                MetricNameEncoded consumerPartitionLatency = new MetricNameEncoded("Consumer.Partition.Latency", item.topic() + "-" + part.partitionId());
-                Histogram histogramConsumerPartitionLatency = new Histogram(new SlidingWindowReservoir(1));
-                if (!m_metrics.getNames().contains(new Gson().toJson(consumerPartitionLatency))) {
-                    if (appProperties.sendConsumerPartitionLatency)
-                        m_metrics.register(new Gson().toJson(consumerPartitionLatency), histogramConsumerPartitionLatency);
-                }
-
-                startTime = System.currentTimeMillis();
-                try {
-                    consumerTryCount++;
-                    consumer.ConsumeFromTopicPartition(item.topic(), part.partitionId());
-                    endTime = System.currentTimeMillis();
-                } catch (Exception e) {
-                    m_logger.error("Error Reading from Topic: {}; Partition: {}; Exception: {}", item.topic(), part.partitionId(), e);
-                    consumerFailCount++;
-
-                    //now add half an hour, 1 800 000 milliseconds = 30 minutes
-                    long halfAnHourLater = System.currentTimeMillis() + 1800000;
-                    endTime = halfAnHourLater;
-                    consumerFailCount++;
-                }
-                histogramConsumerLatency.update(endTime - startTime);
-                histogramConsumerTopicLatency.update(endTime - startTime);
-                histogramConsumerPartitionLatency.update(endTime - startTime);
-            }
-        }
-
-        if (appProperties.sendConsumerAvailability) {
-            MetricNameEncoded consumerAvailability = new MetricNameEncoded("Consumer.Availability", "all");
-            m_metrics.register(new Gson().toJson(consumerAvailability), new AvailabilityGauge(consumerTryCount, consumerTryCount - consumerFailCount));
-        }
-
-        //Print all the topic/partition information.
-        m_logger.info("Printing all the topic/partition information.");
-        metaDataManager.printEverything();
+        /**
+         * The arrival and deregistration of the main thread allows the other threads to start working. This is because
+         * now the registered parties equal the arrived parties.
+         */
+        // deregistering the main thread
+        phaser.arriveAndDeregister();
+        CommonUtils.dumpPhaserState("After main thread arrived and deregistered", phaser);
 
         m_logger.info("All Finished.");
-
-        ((MetaDataManager) metaDataManager).close();
     }
 }

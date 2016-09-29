@@ -1,6 +1,7 @@
 {
   "sqlConnectionString": "jdbc:sqlserver://test;DatabaseName=test;lockTimeout=30000;loginTimeout=30000;user=test;password=test",
   "reportKafkaIpAvailability": true,
+  "reportKafkaGTMAvailability": true,
   "kafkaClusterIP": "1.1.1.1",
   "kafkaGTMIP": "1.1.1.1",
   "reportToSql": true,
@@ -12,9 +13,14 @@
   "sendConsumerAvailability": true,
   "sendProducerLatency": true,
   "sendConsumerLatency": true,
+  "sendIPAvailabilityLatency": true,
+  "sendGTMAvailabilityLatency": true,
   "sendProducerTopicLatency": true,
   "sendConsumerTopicLatency": true,
   "sendProducerPartitionLatency": true,
-  "sendConsumerPartitionLatency": true
+  "sendConsumerPartitionLatency": true,
+  "availabilityThreadSleepTime": 60000,
+  "leaderInfoThreadSleepTime": 300000,
+  "producerThreadSleepTime": 60000
   //"csvDirectory": ""
 }

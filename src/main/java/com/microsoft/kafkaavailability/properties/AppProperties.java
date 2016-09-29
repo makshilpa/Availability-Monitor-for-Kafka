@@ -11,6 +11,7 @@ public class AppProperties
 {
     public String sqlConnectionString;
     public boolean reportKafkaIPAvailability;
+    public boolean reportKafkaGTMAvailability;
     public String kafkaClusterIP;
     public String kafkaGTMIP;
     public boolean reportToSql;
@@ -21,10 +22,15 @@ public class AppProperties
     public boolean sendProducerAvailability;
     public boolean sendConsumerAvailability;
     public boolean sendProducerLatency;
+    public boolean sendIPAvailabilityLatency;
+    public boolean sendGTMAvailabilityLatency;
     public boolean sendConsumerLatency;
     public boolean sendProducerTopicLatency;
     public boolean sendConsumerTopicLatency;
     public boolean sendProducerPartitionLatency;
     public boolean sendConsumerPartitionLatency;
+    public int producerThreadSleepTime;
+    public int leaderInfoThreadSleepTime;
+    public int availabilityThreadSleepTime;
     public String csvDirectory;
 }
