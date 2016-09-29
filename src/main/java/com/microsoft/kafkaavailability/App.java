@@ -46,6 +46,7 @@ public class App {
 
     private static String registrationPath = Constants.DEFAULT_REGISTRATION_ROOT;
     private static String ip = CommonUtils.getIpAddress();
+    private static String computerName = CommonUtils.getComputerName();
     private static String serviceSpec = "";
 
     public static void main(String[] args) throws IOException, MetaDataManagerException, InterruptedException {
@@ -70,6 +71,8 @@ public class App {
 
             m_cluster = line.getOptionValue("cluster");
             MDC.put("cluster", m_cluster);
+
+            MDC.put("computerName", computerName);
             CuratorManager curatorManager = CallRegister(curatorFramework);
 
             if (line.hasOption("sleep")) {
@@ -109,7 +112,7 @@ public class App {
         serviceSpec = ip + ":" + Integer.valueOf(port).toString();
 
         String basePath = new StringBuilder().append(registrationPath).toString();
-        m_logger.info("Creating client, KAT");
+        m_logger.info("Creating client, KAT in the Environment:" + m_cluster);
 
         final CuratorManager curatorManager = new CuratorManager(curatorFramework, basePath, ip, serviceSpec);
 
@@ -136,11 +139,10 @@ public class App {
     private static void waitForChanges(CuratorManager curatorManager) throws Exception {
 
         try {
-            listServers = curatorManager.listServiceInstance();
-            m_logger.info("listServers:" + Arrays.toString(listServers.toArray()));
-
             //wait for rest clients to warm up.
-            Thread.sleep(30000);
+            Thread.sleep(5000);
+            listServers = curatorManager.listServiceInstance();
+            m_logger.info("Environment Name:" + m_cluster  + ". List of KAT Clients:" + Arrays.toString(listServers.toArray()));
 
             curatorManager.verifyRegistrations();
         } catch (Exception e) {

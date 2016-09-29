@@ -36,6 +36,22 @@ public class CommonUtils {
         return (ipAddress);
     }
 
+    /**     * Get the ComputerName of this host
+     */
+    public static String getComputerName() {
+        String hostname = "Unknown";
+
+        try {
+            InetAddress iAddress = InetAddress.getLocalHost();
+            hostname = iAddress.getHostName();
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error(e.getMessage(), e);
+            hostname = getIpAddress();
+        }
+        return (hostname);
+    }
+
     /**
      * Removes any of the given metrics from the registry and returns the number of metrics removed
      *
