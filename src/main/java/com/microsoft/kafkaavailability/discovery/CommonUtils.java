@@ -96,4 +96,16 @@ public class CommonUtils {
                 + phaser.getUnarrivedParties() + " - Arrived: " + phaser.getArrivedParties() + " - Phase: "
                 + phaser.getPhase());
     }
+
+
+    /*
+     * Returns the next wait interval, in milliseconds, using an exponential
+     * backoff algorithm.
+     */
+    public static long getWaitTimeExp(int retryCount) {
+
+        long waitTime = ((long) Math.pow(2, retryCount) * 100L);
+
+        return waitTime;
+    }
 }
