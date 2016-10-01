@@ -8,41 +8,56 @@ package com.microsoft.kafkaavailability.metrics;
 import com.codahale.metrics.*;
 import com.codahale.metrics.Timer;
 import com.google.gson.Gson;
+import com.microsoft.kafkaavailability.sql.JdbcConnectionPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.Charset;
 import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import static com.microsoft.kafkaavailability.discovery.CommonUtils.getWaitTimeExp;
+
 /**
  * A reporter which sends the measurements for each metric to a SQL Database.
  */
-public class SqlReporter extends ScheduledReporter
-{
+public class SqlReporter extends ScheduledReporter {
     private static final Logger m_logger = LoggerFactory.getLogger(SqlReporter.class);
+
+    private JdbcConnectionPool poolMgr;
+
+    protected void initialize() throws SQLException {
+        try {
+            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver"); // Check that server's Java
+            // has SQLServer support.
+        } catch (final ClassNotFoundException e) {
+            throw new SQLException("Can't load JDBC Driver", e);
+        }
+
+        //Instantiate an implementation of a com.microsoft.sqlserver.jdbc.SQLServerXADataSource
+        com.microsoft.sqlserver.jdbc.SQLServerXADataSource dataSource = new com.microsoft.sqlserver.jdbc.SQLServerXADataSource();
+        dataSource.setURL(connectionString);
+        poolMgr = new JdbcConnectionPool(dataSource, 10);
+    }
+
     /**
-     *
      * @param registry the registry to report
      * @return a {@link Builder}
      */
-    public static Builder forRegistry(MetricRegistry registry)
-    {
+    public static Builder forRegistry(MetricRegistry registry) {
         return new Builder(registry);
     }
 
     /***
-     *
-     * @param gauges map of gauge names and objects
-     * @param counters map of counter names and objects
+     * @param gauges     map of gauge names and objects
+     * @param counters   map of counter names and objects
      * @param histograms map of histogram names and objects
-     * @param meters map with of meter and objects
-     * @param timers map with of timer and objects
+     * @param meters     map with of meter and objects
+     * @param timers     map with of timer and objects
      */
     @Override
     public void report(SortedMap<String, Gauge> gauges,
@@ -81,8 +96,7 @@ public class SqlReporter extends ScheduledReporter
      * A builder for  instances. Defaults to using the default locale, converting
      * rates to events/second, converting durations to milliseconds, and not filtering metrics.
      */
-    public static class Builder
-    {
+    public static class Builder {
         private final MetricRegistry registry;
         private Locale locale;
         private TimeUnit rateUnit;
@@ -90,8 +104,7 @@ public class SqlReporter extends ScheduledReporter
         private Clock clock;
         private MetricFilter filter;
 
-        private Builder(MetricRegistry registry)
-        {
+        private Builder(MetricRegistry registry) {
             this.registry = registry;
             this.locale = Locale.getDefault();
             this.rateUnit = TimeUnit.SECONDS;
@@ -106,8 +119,7 @@ public class SqlReporter extends ScheduledReporter
          * @param locale a {@link Locale}
          * @return {@code this}
          */
-        public Builder formatFor(Locale locale)
-        {
+        public Builder formatFor(Locale locale) {
             this.locale = locale;
             return this;
         }
@@ -118,8 +130,7 @@ public class SqlReporter extends ScheduledReporter
          * @param rateUnit a unit of time
          * @return {@code this}
          */
-        public Builder convertRatesTo(TimeUnit rateUnit)
-        {
+        public Builder convertRatesTo(TimeUnit rateUnit) {
             this.rateUnit = rateUnit;
             return this;
         }
@@ -130,8 +141,7 @@ public class SqlReporter extends ScheduledReporter
          * @param durationUnit a unit of time
          * @return {@code this}
          */
-        public Builder convertDurationsTo(TimeUnit durationUnit)
-        {
+        public Builder convertDurationsTo(TimeUnit durationUnit) {
             this.durationUnit = durationUnit;
             return this;
         }
@@ -142,8 +152,7 @@ public class SqlReporter extends ScheduledReporter
          * @param clock a {@link Clock} instance
          * @return {@code this}
          */
-        public Builder withClock(Clock clock)
-        {
+        public Builder withClock(Clock clock) {
             this.clock = clock;
             return this;
         }
@@ -154,8 +163,7 @@ public class SqlReporter extends ScheduledReporter
          * @param filter a {@link MetricFilter}
          * @return {@code this}
          */
-        public Builder filter(MetricFilter filter)
-        {
+        public Builder filter(MetricFilter filter) {
             this.filter = filter;
             return this;
         }
@@ -169,12 +177,12 @@ public class SqlReporter extends ScheduledReporter
          */
         /***
          * Builds a {@link SqlReporter} with the given properties
+         *
          * @param connectionString the connectionString for the db
-         * @param userId typically the cluster name where the service is running
+         * @param userId           typically the cluster name where the service is running
          * @return {@link SqlReporter}
          */
-        public SqlReporter build(String connectionString, String userId)
-        {
+        public SqlReporter build(String connectionString, String userId) {
             return new SqlReporter(registry,
                     connectionString,
                     userId,
@@ -201,18 +209,21 @@ public class SqlReporter extends ScheduledReporter
                         TimeUnit rateUnit,
                         TimeUnit durationUnit,
                         Clock clock,
-                        MetricFilter filter)
-    {
+                        MetricFilter filter) {
         super(registry, "sql-reporter", filter, rateUnit, durationUnit);
         this.connectionString = connectionString;
         this.userId = userId;
         this.locale = locale;
         this.clock = clock;
+        try {
+            initialize();
+        } catch (Exception e) {
+            m_logger.error(e.getMessage(), e);
+        }
     }
 
 
-    private void reportTimer(long timestamp, String name, Timer timer)
-    {
+    private void reportTimer(long timestamp, String name, Timer timer) {
         final Snapshot snapshot = timer.getSnapshot();
 
         report(timestamp,
@@ -238,8 +249,7 @@ public class SqlReporter extends ScheduledReporter
                 getDurationUnit());
     }
 
-    private void reportMeter(long timestamp, String name, Meter meter)
-    {
+    private void reportMeter(long timestamp, String name, Meter meter) {
         report(timestamp,
                 name,
                 "count,mean_rate,m1_rate,m5_rate,m15_rate,rate_unit",
@@ -252,8 +262,7 @@ public class SqlReporter extends ScheduledReporter
                 getRateUnit());
     }
 
-    private void reportHistogram(long timestamp, String name, Histogram histogram)
-    {
+    private void reportHistogram(long timestamp, String name, Histogram histogram) {
         final Snapshot snapshot = histogram.getSnapshot();
 
         report(timestamp,
@@ -273,30 +282,32 @@ public class SqlReporter extends ScheduledReporter
                 snapshot.get999thPercentile());
     }
 
-    private void reportCounter(long timestamp, String name, Counter counter)
-    {
+    private void reportCounter(long timestamp, String name, Counter counter) {
         report(timestamp, name, "count", "'%d'", counter.getCount());
     }
 
-    private void reportGauge(long timestamp, String name, Gauge gauge)
-    {
+    private void reportGauge(long timestamp, String name, Gauge gauge) {
         report(timestamp, name, "value", "'%s'", gauge.getValue());
     }
 
     private void report(long timestamp, String name, String header, String line, Object... values) {
         Connection con = null;
         Statement stmt = null;
-        int iMaxRetries = 10;
-        int iRetryInterval = 5;
+        int iMaxWaitInterval = 300000;
+        int iMaxRetries = 5;
 
         MetricNameEncoded metricNameEncoded = new Gson().fromJson(name, MetricNameEncoded.class);
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         try {
-            for (int iRetryCount = 0; iRetryCount < iMaxRetries; iRetryCount++) {
-                try {
-                    con = getConnection(connectionString);
 
+            int retries = 0;
+            boolean retry = true;
+
+            do {
+
+                try {
+                    con = poolMgr.getConnection();
                     // Create and execute an SQL statement that returns some data.
                     String SQL = String.format(String.format("insert into [dbo].[%s] values('%s','%s','%s',%s)", metricNameEncoded.name, userId, sdf.format(new Date(timestamp * 1000)), metricNameEncoded.tag, line), values);
 
@@ -304,12 +315,13 @@ public class SqlReporter extends ScheduledReporter
                         stmt = con.createStatement();
                         if (null != stmt) {
                             stmt.execute(SQL);
-                            //Setting retry to false to exit the loop
                             break;
                         }
                     }
                 } catch (java.sql.SQLException e) {
                     logSQLException(e);
+                } catch (Exception e) {
+                    m_logger.error(e.getMessage(), e);
                 } finally {
                     // Clean up the command and Database Connection objects
                     try {
@@ -326,9 +338,11 @@ public class SqlReporter extends ScheduledReporter
                     }
                     con = null;
                 }
+                long waitTime = Math.min(getWaitTimeExp(retries), iMaxWaitInterval);
                 // Sleep and continue (convert to milliseconds)
-                Thread.sleep(iRetryInterval * 1000);
-            }
+                Thread.sleep(waitTime);
+            } while (retries++ < iMaxRetries);
+
         }
         // unreported exception java.lang.InterruptedException; must be caught or declared to be thrown
         catch (Exception ex) {
@@ -337,25 +351,8 @@ public class SqlReporter extends ScheduledReporter
         }
     }
 
-    /**
-     Return the connection instance to the SQL Server.
-     Load the SQLServerDriver class, build the connection string
-     **/
-    public Connection getConnection(String connStr) {
-
-        try {
-            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-            Connection conn = java.sql.DriverManager.getConnection(connStr);
-            return conn;
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            m_logger.error(ex.getMessage(), ex);
-        }
-        return null;
-    }
-
     // Display an SQLException which has occured in this application.
-    private static void logSQLException (java.sql.SQLException e) {
+    private static void logSQLException(java.sql.SQLException e) {
         // Notice that a SQLException is actually a chain of SQLExceptions,
         // let's print all of them...
         java.sql.SQLException next = e;
