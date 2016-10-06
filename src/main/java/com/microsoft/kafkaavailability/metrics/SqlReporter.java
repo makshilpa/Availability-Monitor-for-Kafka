@@ -300,9 +300,7 @@ public class SqlReporter extends ScheduledReporter {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         try {
-
             int retries = 0;
-            boolean retry = true;
 
             do {
 
@@ -338,7 +336,7 @@ public class SqlReporter extends ScheduledReporter {
                     }
                     con = null;
                 }
-                long waitTime = Math.min(getWaitTimeExp(retries), iMaxWaitInterval);
+                long waitTime = Math.min(getWaitTimeExp(retries, 1000L), iMaxWaitInterval);
                 // Sleep and continue (convert to milliseconds)
                 Thread.sleep(waitTime);
             } while (retries++ < iMaxRetries);
@@ -357,9 +355,7 @@ public class SqlReporter extends ScheduledReporter {
         // let's print all of them...
         java.sql.SQLException next = e;
         while (next != null) {
-            m_logger.error(next.getMessage());
-            m_logger.error("Error Code: " + next.getErrorCode());
-            m_logger.error("SQL State: " + next.getSQLState());
+            m_logger.error(next.getMessage() + " Error Code: " + next.getErrorCode() + " SQL State: " + next.getSQLState());
             next = next.getNextException();
         }
     }

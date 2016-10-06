@@ -5,11 +5,6 @@
 
 package com.microsoft.kafkaavailability.threads;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Phaser;
-
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.SlidingWindowReservoir;
@@ -18,6 +13,7 @@ import com.microsoft.kafkaavailability.*;
 import com.microsoft.kafkaavailability.discovery.CommonUtils;
 import com.microsoft.kafkaavailability.metrics.AvailabilityGauge;
 import com.microsoft.kafkaavailability.metrics.MetricNameEncoded;
+import com.microsoft.kafkaavailability.metrics.MetricsFactory;
 import com.microsoft.kafkaavailability.properties.AppProperties;
 import com.microsoft.kafkaavailability.properties.ConsumerProperties;
 import com.microsoft.kafkaavailability.properties.MetaDataManagerProperties;
@@ -25,48 +21,67 @@ import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.microsoft.kafkaavailability.discovery.CommonUtils.stopWatch;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Phaser;
 
 public class ConsumerThread implements Runnable {
 
     final static Logger m_logger = LoggerFactory.getLogger(ConsumerThread.class);
     Phaser m_phaser;
     CuratorFramework m_curatorFramework;
-    MetricRegistry m_metrics;
     List<String> m_listServers;
     String m_serviceSpec;
+    String m_clusterName;
+    MetricsFactory metricsFactory;
 
-    public ConsumerThread(Phaser phaser, CuratorFramework curatorFramework, MetricRegistry metrics, List<String> listServers, String serviceSpec) {
+    public ConsumerThread(Phaser phaser, CuratorFramework curatorFramework, List<String> listServers, String serviceSpec, String clusterName) {
         this.m_phaser = phaser;
         this.m_curatorFramework = curatorFramework;
         this.m_phaser.register(); //Registers/Add a new unArrived party to this phaser.
         CommonUtils.dumpPhaserState("After registration of ConsumerThread", phaser);
-        m_metrics = metrics;
         m_listServers = listServers;
         m_serviceSpec = serviceSpec;
+        m_clusterName = clusterName;
     }
 
     @Override
     public void run() {
-        while (!m_phaser.isTerminated()) {
+        do {
+            long lStartTime = System.nanoTime();
+            MetricRegistry metrics;
             m_logger.info(Thread.currentThread().getName() +
                     " - Consumer party has arrived and is working in "
                     + "Phase-" + m_phaser.getPhase());
-            long lStartTime = System.nanoTime();
+
             try {
-                RunConsumer();
+                metricsFactory = MetricsFactory.getInstance();
+                metricsFactory.configure(m_clusterName);
+
+                metricsFactory.start();
+                metrics = metricsFactory.getRegistry();
+                RunConsumer(metrics);
+                metricsFactory.report();
+                CommonUtils.sleep(1000);
             } catch (Exception e) {
                 m_logger.error(e.getMessage(), e);
+            } finally {
+                try {
+                    metricsFactory.stop();
+                } catch (Exception e) {
+                    m_logger.error(e.getMessage(), e);
+                }
             }
+
             m_logger.info("Consumer Elapsed: " + CommonUtils.stopWatch(lStartTime) + " milliseconds.");
-            //phaser.arriveAndAwaitAdvance();
             m_phaser.arriveAndDeregister();
             CommonUtils.dumpPhaserState("After arrival of ConsumerThread", m_phaser);
-        }
+        } while (!m_phaser.isTerminated());
         m_logger.info("ConsumerThread (run()) has been COMPLETED.");
     }
 
-    private void RunConsumer() throws IOException, MetaDataManagerException {
+    private void RunConsumer(MetricRegistry metrics) throws IOException, MetaDataManagerException {
 
         m_logger.info("Starting ConsumerLatency");
 
@@ -105,9 +120,9 @@ public class ConsumerThread implements Runnable {
         final SlidingWindowReservoir consumerLatencyWindow = new SlidingWindowReservoir(numPartitionsConsumers);
         Histogram histogramConsumerLatency = new Histogram(consumerLatencyWindow);
         MetricNameEncoded consumerLatency = new MetricNameEncoded("Consumer.Latency", "all");
-        if (!m_metrics.getNames().contains(new Gson().toJson(consumerLatency))) {
+        if (!metrics.getNames().contains(new Gson().toJson(consumerLatency))) {
             if (appProperties.sendConsumerLatency) {
-                m_metrics.register(new Gson().toJson(consumerLatency), histogramConsumerLatency);
+                metrics.register(new Gson().toJson(consumerLatency), histogramConsumerLatency);
             }
         }
         for (kafka.javaapi.TopicMetadata item : allTopicMetadata) {
@@ -115,18 +130,18 @@ public class ConsumerThread implements Runnable {
             final SlidingWindowReservoir topicLatency = new SlidingWindowReservoir(item.partitionsMetadata().size());
             Histogram histogramConsumerTopicLatency = new Histogram(topicLatency);
             MetricNameEncoded consumerTopicLatency = new MetricNameEncoded("Consumer.Topic.Latency", item.topic());
-            if (!m_metrics.getNames().contains(new Gson().toJson(consumerTopicLatency))) {
+            if (!metrics.getNames().contains(new Gson().toJson(consumerTopicLatency))) {
                 if (appProperties.sendConsumerTopicLatency)
-                    m_metrics.register(new Gson().toJson(consumerTopicLatency), histogramConsumerTopicLatency);
+                    metrics.register(new Gson().toJson(consumerTopicLatency), histogramConsumerTopicLatency);
             }
 
             for (kafka.javaapi.PartitionMetadata part : item.partitionsMetadata()) {
                 m_logger.debug("Reading from Topic: {}; Partition: {};", item.topic(), part.partitionId());
                 MetricNameEncoded consumerPartitionLatency = new MetricNameEncoded("Consumer.Partition.Latency", item.topic() + "-" + part.partitionId());
                 Histogram histogramConsumerPartitionLatency = new Histogram(new SlidingWindowReservoir(1));
-                if (!m_metrics.getNames().contains(new Gson().toJson(consumerPartitionLatency))) {
+                if (!metrics.getNames().contains(new Gson().toJson(consumerPartitionLatency))) {
                     if (appProperties.sendConsumerPartitionLatency)
-                        m_metrics.register(new Gson().toJson(consumerPartitionLatency), histogramConsumerPartitionLatency);
+                        metrics.register(new Gson().toJson(consumerPartitionLatency), histogramConsumerPartitionLatency);
                 }
 
                 startTime = System.currentTimeMillis();
@@ -148,8 +163,8 @@ public class ConsumerThread implements Runnable {
 
         if (appProperties.sendConsumerAvailability) {
             MetricNameEncoded consumerAvailability = new MetricNameEncoded("Consumer.Availability", "all");
-            if (!m_metrics.getNames().contains(new Gson().toJson(consumerAvailability))) {
-                m_metrics.register(new Gson().toJson(consumerAvailability), new AvailabilityGauge(consumerTryCount, consumerTryCount - consumerFailCount));
+            if (!metrics.getNames().contains(new Gson().toJson(consumerAvailability))) {
+                metrics.register(new Gson().toJson(consumerAvailability), new AvailabilityGauge(consumerTryCount, consumerTryCount - consumerFailCount));
             }
         }
 

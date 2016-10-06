@@ -33,6 +33,7 @@ public class LeaderInfoThread implements Runnable {
     @Override
     public void run() {
         int sleepDuration = 1000;
+
         do {
             m_logger.info(Thread.currentThread().getName() +
                     " - LeaderInfo party has arrived and is working in "

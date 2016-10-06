@@ -13,6 +13,7 @@ import com.microsoft.kafkaavailability.*;
 import com.microsoft.kafkaavailability.discovery.CommonUtils;
 import com.microsoft.kafkaavailability.metrics.AvailabilityGauge;
 import com.microsoft.kafkaavailability.metrics.MetricNameEncoded;
+import com.microsoft.kafkaavailability.metrics.MetricsFactory;
 import com.microsoft.kafkaavailability.properties.AppProperties;
 import com.microsoft.kafkaavailability.properties.MetaDataManagerProperties;
 import com.microsoft.kafkaavailability.properties.ProducerProperties;
@@ -31,33 +32,48 @@ public class AvailabilityThread implements Runnable {
     final static Logger m_logger = LoggerFactory.getLogger(AvailabilityThread.class);
     Phaser m_phaser;
     CuratorFramework m_curatorFramework;
-    MetricRegistry m_metrics;
     int m_threadSleepTime;
+    String m_clusterName;
+    MetricsFactory metricsFactory;
 
-    public AvailabilityThread(Phaser phaser, CuratorFramework curatorFramework, MetricRegistry metrics, int threadSleepTime) {
+    public AvailabilityThread(Phaser phaser, CuratorFramework curatorFramework, int threadSleepTime, String clusterName) {
         this.m_phaser = phaser;
         this.m_curatorFramework = curatorFramework;
         //this.m_phaser.register(); //Registers/Add a new unArrived party to this phaser.
         //CommonUtils.dumpPhaserState("After register", phaser);
-        m_metrics = metrics;
         m_threadSleepTime = threadSleepTime;
+        m_clusterName = clusterName;
     }
 
     @Override
     public void run() {
         int sleepDuration = 1000;
         do {
+            long lStartTime = System.nanoTime();
+            MetricRegistry metrics;
             m_logger.info(Thread.currentThread().getName() +
                     " - Availability party has arrived and is working in "
                     + "Phase-" + m_phaser.getPhase());
 
-            long lStartTime = System.nanoTime();
-
             try {
-                RunAvailability();
+                metricsFactory = MetricsFactory.getInstance();
+                metricsFactory.configure(m_clusterName);
+
+                metricsFactory.start();
+                metrics = metricsFactory.getRegistry();
+                RunAvailability(metrics);
+                metricsFactory.report();
+                CommonUtils.sleep(1000);
             } catch (Exception e) {
                 m_logger.error(e.getMessage(), e);
+            } finally {
+                try {
+                    metricsFactory.stop();
+                } catch (Exception e) {
+                    m_logger.error(e.getMessage(), e);
+                }
             }
+
             long elapsedTime = CommonUtils.stopWatch(lStartTime);
             m_logger.info("Availability Elapsed: " + elapsedTime + " milliseconds.");
 
@@ -69,12 +85,11 @@ public class AvailabilityThread implements Runnable {
                     m_logger.error(ie.getMessage(), ie);
                 }
             }
-            //phaser.arriveAndAwaitAdvance();
         } while (!m_phaser.isTerminated());
         m_logger.info("AvailabilityThread (run()) has been COMPLETED.");
     }
 
-    private void RunAvailability() throws IOException, MetaDataManagerException {
+    private void RunAvailability(MetricRegistry metrics) throws IOException, MetaDataManagerException {
 
         m_logger.info("Starting AvailabilityLatency");
 
@@ -112,17 +127,17 @@ public class AvailabilityThread implements Runnable {
         final SlidingWindowReservoir gtmAvailabilityLatencyWindow = new SlidingWindowReservoir(windowSize);
         Histogram histogramGTMAvailabilityLatency = new Histogram(gtmAvailabilityLatencyWindow);
         MetricNameEncoded gtmAvailabilityLatency = new MetricNameEncoded("KafkaGTMIP.Availability.Latency", "all");
-        if (!m_metrics.getNames().contains(new Gson().toJson(gtmAvailabilityLatency))) {
+        if (!metrics.getNames().contains(new Gson().toJson(gtmAvailabilityLatency))) {
             if (appProperties.sendGTMAvailabilityLatency)
-                m_metrics.register(new Gson().toJson(gtmAvailabilityLatency), histogramGTMAvailabilityLatency);
+                metrics.register(new Gson().toJson(gtmAvailabilityLatency), histogramGTMAvailabilityLatency);
         }
 
         final SlidingWindowReservoir IPAvailabilityLatencyWindow = new SlidingWindowReservoir(windowSize);
         Histogram histogramIPAvailabilityLatency = new Histogram(IPAvailabilityLatencyWindow);
         MetricNameEncoded ipAvailabilityLatency = new MetricNameEncoded("KafkaIP.Availability.Latency", "all");
-        if (!m_metrics.getNames().contains(new Gson().toJson(ipAvailabilityLatency))) {
+        if (!metrics.getNames().contains(new Gson().toJson(ipAvailabilityLatency))) {
             if (appProperties.sendIPAvailabilityLatency)
-                m_metrics.register(new Gson().toJson(ipAvailabilityLatency), histogramIPAvailabilityLatency);
+                metrics.register(new Gson().toJson(ipAvailabilityLatency), histogramIPAvailabilityLatency);
         }
 
         m_logger.info("Starting KafkaIP prop check." + appProperties.reportKafkaIPAvailability);
@@ -163,15 +178,15 @@ public class AvailabilityThread implements Runnable {
         if (appProperties.reportKafkaIPAvailability) {
             m_logger.info("About to report kafkaClusterIPAvailability-- TryCount:" + clusterIPStatusTryCount + " FailCount:" + clusterIPStatusFailCount);
             MetricNameEncoded kafkaClusterIPAvailability = new MetricNameEncoded("KafkaIP.Availability", "all");
-            if (!m_metrics.getNames().contains(new Gson().toJson(kafkaClusterIPAvailability))) {
-                m_metrics.register(new Gson().toJson(kafkaClusterIPAvailability), new AvailabilityGauge(clusterIPStatusTryCount, clusterIPStatusTryCount - clusterIPStatusFailCount));
+            if (!metrics.getNames().contains(new Gson().toJson(kafkaClusterIPAvailability))) {
+                metrics.register(new Gson().toJson(kafkaClusterIPAvailability), new AvailabilityGauge(clusterIPStatusTryCount, clusterIPStatusTryCount - clusterIPStatusFailCount));
             }
         }
         if (appProperties.reportKafkaGTMAvailability) {
             m_logger.info("About to report kafkaGTMIPAvailability-- TryCount:" + gtmIPStatusTryCount + " FailCount:" + gtmIPStatusFailCount);
             MetricNameEncoded kafkaGTMIPAvailability = new MetricNameEncoded("KafkaGTMIP.Availability", "all");
-            if (!m_metrics.getNames().contains(new Gson().toJson(kafkaGTMIPAvailability))) {
-                m_metrics.register(new Gson().toJson(kafkaGTMIPAvailability), new AvailabilityGauge(gtmIPStatusTryCount, gtmIPStatusTryCount - gtmIPStatusFailCount));
+            if (!metrics.getNames().contains(new Gson().toJson(kafkaGTMIPAvailability))) {
+                metrics.register(new Gson().toJson(kafkaGTMIPAvailability), new AvailabilityGauge(gtmIPStatusTryCount, gtmIPStatusTryCount - gtmIPStatusFailCount));
             }
         }
 

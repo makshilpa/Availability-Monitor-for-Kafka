@@ -5,16 +5,12 @@
 
 package com.microsoft.kafkaavailability.discovery;
 
-import java.net.InetAddress;
-import java.util.Set;
-import java.util.concurrent.Phaser;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import com.codahale.metrics.*;
-import com.google.common.collect.ImmutableSet;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.InetAddress;
+import java.util.concurrent.Phaser;
+import java.util.concurrent.TimeUnit;
 
 public class CommonUtils {
 
@@ -53,29 +49,6 @@ public class CommonUtils {
     }
 
     /**
-     * Removes any of the given metrics from the registry and returns the number of metrics removed
-     *
-     * @param metricRegistry  Registry to remove from
-     * @param metricsToRemove Which metrics to remove
-     * @return The number of metrics removed
-     */
-    public static int removeMetrics(MetricRegistry metricRegistry, final Metric... metricsToRemove) {
-        final Set<Metric> toRemove = ImmutableSet.copyOf(metricsToRemove);
-        final AtomicInteger totalRemoved = new AtomicInteger(0);
-        metricRegistry.removeMatching(new MetricFilter() {
-            @Override
-            public boolean matches(String name, Metric metric) {
-                final boolean shouldRemove = toRemove.contains(metric);
-                if (shouldRemove) {
-                    totalRemoved.incrementAndGet();
-                }
-                return shouldRemove;
-            }
-        });
-        return totalRemoved.get();
-    }
-
-    /**
      * Method to measure elapsed time since start time until now
      *
      * Example:
@@ -102,10 +75,24 @@ public class CommonUtils {
      * Returns the next wait interval, in milliseconds, using an exponential
      * backoff algorithm.
      */
-    public static long getWaitTimeExp(int retryCount) {
+    public static long getWaitTimeExp(int retryCount, long waitInterval) {
 
-        long waitTime = ((long) Math.pow(2, retryCount) * 100L);
+        long waitTime = ((long) Math.pow(2, retryCount) * waitInterval);
 
         return waitTime;
+    }
+
+    /**
+     * Sleep for the specified time, ignoring any exceptions that occur
+     *
+     * @param millis
+     *            The number of milliseconds to sleep for
+     */
+    public static void sleep(long millis) {
+        try {
+            Thread.currentThread().sleep(millis);
+        } catch (InterruptedException e) {
+            // Do nothing
+        }
     }
 }

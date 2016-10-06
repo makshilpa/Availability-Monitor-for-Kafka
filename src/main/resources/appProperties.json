@@ -21,6 +21,7 @@
   "sendConsumerPartitionLatency": true,
   "availabilityThreadSleepTime": 60000,
   "leaderInfoThreadSleepTime": 300000,
-  "producerThreadSleepTime": 60000
+  "producerThreadSleepTime": 60000,
+  "reportInterval": 0
   //"csvDirectory": ""
 }

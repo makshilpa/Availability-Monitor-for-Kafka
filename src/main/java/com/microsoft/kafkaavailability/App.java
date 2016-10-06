@@ -5,29 +5,27 @@
 
 package com.microsoft.kafkaavailability;
 
-import com.microsoft.kafkaavailability.metrics.SqlReporter;
+import com.microsoft.kafkaavailability.discovery.CommonUtils;
+import com.microsoft.kafkaavailability.discovery.Constants;
+import com.microsoft.kafkaavailability.discovery.CuratorClient;
+import com.microsoft.kafkaavailability.discovery.CuratorManager;
 import com.microsoft.kafkaavailability.properties.AppProperties;
 import com.microsoft.kafkaavailability.properties.MetaDataManagerProperties;
+import com.microsoft.kafkaavailability.threads.AvailabilityThread;
+import com.microsoft.kafkaavailability.threads.ConsumerThread;
+import com.microsoft.kafkaavailability.threads.LeaderInfoThread;
+import com.microsoft.kafkaavailability.threads.ProducerThread;
 import org.apache.commons.cli.*;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.log4j.MDC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.codahale.metrics.*;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.imps.CuratorFrameworkState;
-import com.microsoft.kafkaavailability.discovery.Constants;
-import com.microsoft.kafkaavailability.discovery.CuratorManager;
-import com.microsoft.kafkaavailability.discovery.CuratorClient;
-import com.microsoft.kafkaavailability.discovery.CommonUtils;
-import com.microsoft.kafkaavailability.threads.*;
 
-import java.util.Arrays;
-import java.io.File;
 import java.io.IOException;
-import java.util.Locale;
-import java.util.concurrent.Phaser;
-import java.util.concurrent.TimeUnit;
+import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Phaser;
 
 /***
  * Sends a canary message to every topic and partition in Kafka.
@@ -39,7 +37,6 @@ public class App {
     final static Logger m_logger = LoggerFactory.getLogger(App.class);
     static int m_sleepTime = 30000;
     static String m_cluster = "localhost";
-    static MetricRegistry m_metrics;
     static AppProperties appProperties;
     static MetaDataManagerProperties metaDataProperties;
     static List<String> listServers;
@@ -82,14 +79,12 @@ public class App {
             if (line.hasOption("run")) {
                 howManyRuns = Integer.parseInt(line.getOptionValue("run"));
                 for (int i = 0; i < howManyRuns; i++) {
-                    InitMetrics(m_sleepTime);
                     waitForChanges(curatorManager);
                     RunOnce(curatorFramework);
                     Thread.sleep(m_sleepTime);
                 }
             } else {
                 while (true) {
-                    InitMetrics(m_sleepTime);
                     waitForChanges(curatorManager);
                     RunOnce(curatorFramework);
                     Thread.sleep(m_sleepTime);
@@ -142,7 +137,7 @@ public class App {
             //wait for rest clients to warm up.
             Thread.sleep(5000);
             listServers = curatorManager.listServiceInstance();
-            m_logger.info("Environment Name:" + m_cluster  + ". List of KAT Clients:" + Arrays.toString(listServers.toArray()));
+            m_logger.info("Environment Name:" + m_cluster + ". List of KAT Clients:" + Arrays.toString(listServers.toArray()));
 
             curatorManager.verifyRegistrations();
         } catch (Exception e) {
@@ -152,6 +147,7 @@ public class App {
         }
     }
 
+    /*
     private static void InitMetrics(int reportDuration) {
         m_metrics = new MetricRegistry();
 
@@ -191,7 +187,7 @@ public class App {
             csvReporter.start(reportDuration, TimeUnit.MILLISECONDS);
         }
     }
-
+*/
 
     private static void RunOnce(CuratorFramework curatorFramework) throws IOException, MetaDataManagerException {
 
@@ -243,9 +239,9 @@ public class App {
         int leaderInfoThreadSleepTime = (appProperties.leaderInfoThreadSleepTime > 0 ? appProperties.leaderInfoThreadSleepTime : 300000);
 
         Thread leaderInfoThread = new Thread(new LeaderInfoThread(phaser, curatorFramework, leaderInfoThreadSleepTime), "LeaderInfoThread-1");
-        Thread producerThread = new Thread(new ProducerThread(phaser, curatorFramework, m_metrics, producerThreadSleepTime), "ProducerThread-1");
-        Thread availabilityThread = new Thread(new AvailabilityThread(phaser, curatorFramework, m_metrics, availabilityThreadSleepTime), "AvailabilityThread-1");
-        Thread consumerThread = new Thread(new ConsumerThread(phaser, curatorFramework, m_metrics, listServers, serviceSpec), "ConsumerThread-1");
+        Thread producerThread = new Thread(new ProducerThread(phaser, curatorFramework, producerThreadSleepTime, m_cluster), "ProducerThread-1");
+        Thread availabilityThread = new Thread(new AvailabilityThread(phaser, curatorFramework, availabilityThreadSleepTime, m_cluster), "AvailabilityThread-1");
+        Thread consumerThread = new Thread(new ConsumerThread(phaser, curatorFramework, listServers, serviceSpec, m_cluster), "ConsumerThread-1");
 
         leaderInfoThread.start();
         producerThread.start();

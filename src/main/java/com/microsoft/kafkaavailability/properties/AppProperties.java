@@ -33,4 +33,5 @@ public class AppProperties
     public int leaderInfoThreadSleepTime;
     public int availabilityThreadSleepTime;
     public String csvDirectory;
+    public int reportInterval;
 }

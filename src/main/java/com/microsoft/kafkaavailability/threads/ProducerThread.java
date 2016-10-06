@@ -13,6 +13,7 @@ import com.microsoft.kafkaavailability.*;
 import com.microsoft.kafkaavailability.discovery.CommonUtils;
 import com.microsoft.kafkaavailability.metrics.AvailabilityGauge;
 import com.microsoft.kafkaavailability.metrics.MetricNameEncoded;
+import com.microsoft.kafkaavailability.metrics.MetricsFactory;
 import com.microsoft.kafkaavailability.properties.AppProperties;
 import com.microsoft.kafkaavailability.properties.MetaDataManagerProperties;
 import com.microsoft.kafkaavailability.properties.ProducerProperties;
@@ -21,9 +22,11 @@ import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.Phaser;
 
 public class ProducerThread implements Runnable {
@@ -31,32 +34,49 @@ public class ProducerThread implements Runnable {
     final static Logger m_logger = LoggerFactory.getLogger(ProducerThread.class);
     Phaser m_phaser;
     CuratorFramework m_curatorFramework;
-    MetricRegistry m_metrics;
+    MetricsFactory metricsFactory;
     int m_threadSleepTime;
+    String m_clusterName;
 
-    public ProducerThread(Phaser phaser, CuratorFramework curatorFramework, MetricRegistry metrics, int threadSleepTime) {
+    public ProducerThread(Phaser phaser, CuratorFramework curatorFramework, int threadSleepTime, String clusterName) {
         this.m_phaser = phaser;
         this.m_curatorFramework = curatorFramework;
         //this.m_phaser.register(); //Registers/Add a new unArrived party to this phaser.
         //CommonUtils.dumpPhaserState("After register", phaser);
-        m_metrics = metrics;
-        m_threadSleepTime = threadSleepTime;
+        this.m_threadSleepTime = threadSleepTime;
+        this.m_clusterName = clusterName;
     }
 
     @Override
     public void run() {
         int sleepDuration = 1000;
+
         do {
+            long lStartTime = System.nanoTime();
+            MetricRegistry metrics;
             m_logger.info(Thread.currentThread().getName() +
                     " - Producer party has arrived and is working in "
                     + "Phase-" + m_phaser.getPhase());
-            //long startTime = System.currentTimeMillis();
-            long lStartTime = System.nanoTime();
+
             try {
-                RunProducer();
+                metricsFactory = MetricsFactory.getInstance();
+                metricsFactory.configure(m_clusterName);
+
+                metricsFactory.start();
+                metrics = metricsFactory.getRegistry();
+                RunProducer(metrics);
+                metricsFactory.report();
+                CommonUtils.sleep(1000);
             } catch (Exception e) {
                 m_logger.error(e.getMessage(), e);
+            } finally {
+                try {
+                    metricsFactory.stop();
+                } catch (Exception e) {
+                    m_logger.error(e.getMessage(), e);
+                }
             }
+
             long elapsedTime = CommonUtils.stopWatch(lStartTime);
             m_logger.info("Producer Elapsed: " + elapsedTime + " milliseconds.");
 
@@ -73,7 +93,7 @@ public class ProducerThread implements Runnable {
         m_logger.info("ProducerThread (run()) has been COMPLETED.");
     }
 
-    private void RunProducer() throws IOException, MetaDataManagerException {
+    private void RunProducer(MetricRegistry metrics) throws IOException, MetaDataManagerException {
 
         m_logger.info("Starting ProducerLatency");
         IPropertiesManager producerPropertiesManager = new PropertiesManager<ProducerProperties>("producerProperties.json", ProducerProperties.class);
@@ -118,9 +138,9 @@ public class ProducerThread implements Runnable {
         Histogram histogramProducerLatency = new Histogram(producerLatencyWindow);
 
         MetricNameEncoded producerLatency = new MetricNameEncoded("Producer.Latency", "all");
-        if (!m_metrics.getNames().contains(new Gson().toJson(producerLatency))) {
+        if (!metrics.getNames().contains(new Gson().toJson(producerLatency))) {
             if (appProperties.sendProducerLatency)
-                m_metrics.register(new Gson().toJson(producerLatency), histogramProducerLatency);
+                metrics.register(new Gson().toJson(producerLatency), histogramProducerLatency);
         }
 
         m_logger.info("start topic partition loop");
@@ -129,18 +149,18 @@ public class ProducerThread implements Runnable {
             final SlidingWindowReservoir topicLatency = new SlidingWindowReservoir(item.partitionsMetadata().size());
             Histogram histogramProducerTopicLatency = new Histogram(topicLatency);
             MetricNameEncoded producerTopicLatency = new MetricNameEncoded("Producer.Topic.Latency", item.topic());
-            if (!m_metrics.getNames().contains(new Gson().toJson(producerTopicLatency))) {
+            if (!metrics.getNames().contains(new Gson().toJson(producerTopicLatency))) {
                 if (appProperties.sendProducerTopicLatency)
-                    m_metrics.register(new Gson().toJson(producerTopicLatency), histogramProducerTopicLatency);
+                    metrics.register(new Gson().toJson(producerTopicLatency), histogramProducerTopicLatency);
             }
 
             for (kafka.javaapi.PartitionMetadata part : item.partitionsMetadata()) {
                 m_logger.debug("Writing to Topic: {}; Partition: {};", item.topic(), part.partitionId());
                 MetricNameEncoded producerPartitionLatency = new MetricNameEncoded("Producer.Partition.Latency", item.topic() + "-" + part.partitionId());
                 Histogram histogramProducerPartitionLatency = new Histogram(new SlidingWindowReservoir(1));
-                if (!m_metrics.getNames().contains(new Gson().toJson(producerPartitionLatency))) {
+                if (!metrics.getNames().contains(new Gson().toJson(producerPartitionLatency))) {
                     if (appProperties.sendProducerPartitionLatency)
-                        m_metrics.register(new Gson().toJson(producerPartitionLatency), histogramProducerPartitionLatency);
+                        metrics.register(new Gson().toJson(producerPartitionLatency), histogramProducerPartitionLatency);
                 }
                 startTime = System.currentTimeMillis();
                 try {
@@ -159,8 +179,8 @@ public class ProducerThread implements Runnable {
         }
         if (appProperties.sendProducerAvailability) {
             MetricNameEncoded producerAvailability = new MetricNameEncoded("Producer.Availability", "all");
-            if (!m_metrics.getNames().contains(new Gson().toJson(producerAvailability))) {
-                m_metrics.register(new Gson().toJson(producerAvailability), new AvailabilityGauge(producerTryCount, producerTryCount - producerFailCount));
+            if (!metrics.getNames().contains(new Gson().toJson(producerAvailability))) {
+                metrics.register(new Gson().toJson(producerAvailability), new AvailabilityGauge(producerTryCount, producerTryCount - producerFailCount));
             }
         }
 
