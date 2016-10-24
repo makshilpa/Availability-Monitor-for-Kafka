@@ -6,32 +6,27 @@
 
 package com.microsoft.kafkaavailability;
 
-import com.microsoft.kafkaavailability.properties.MetaDataManagerProperties;
 import com.google.gson.Gson;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.apache.zookeeper.KeeperException;
-import scala.Option;
-import scala.collection.JavaConversions;
+import com.microsoft.kafkaavailability.properties.MetaDataManagerProperties;
 import kafka.javaapi.PartitionMetadata;
 import kafka.javaapi.TopicMetadata;
 import kafka.javaapi.TopicMetadataRequest;
 import kafka.javaapi.consumer.SimpleConsumer;
-import org.apache.zookeeper.ZooKeeper;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import kafka.admin.AdminOperationException;
-import kafka.admin.AdminUtils;
-import kafka.common.TopicAndPartition;
-import kafka.common.TopicExistsException;
+import scala.Option;
+import scala.collection.JavaConversions;
 
-import java.util.Properties;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Collections;
+import java.util.regex.Pattern;
+
+import static com.microsoft.kafkaavailability.discovery.CommonUtils.createTopicRegEx;
 
 /***
  * Gets the list of Kafka brokers.
@@ -78,8 +73,8 @@ public class MetaDataManager implements IMetaDataManager
     @Override
     public void createWhiteListedTopics() {
         List<String> topics = new ArrayList<String>();
-        if (m_mDProps.useWhiteList) {
-            topics.addAll(m_mDProps.topicsWhitelist);
+        if (m_mDProps.canaryTestTopics.isEmpty()) {
+            topics.addAll(m_mDProps.canaryTestTopics);
             int replicationFactor = (m_mDProps.replicationFactor > 0) ? m_mDProps.replicationFactor : 3;
             try {
                 List<String> brokerList = getBrokerList(true);
@@ -160,10 +155,6 @@ public class MetaDataManager implements IMetaDataManager
     @Override
     public List<kafka.javaapi.TopicMetadata> getMetaDataFromAllBrokers() {
         List<String> topics = new ArrayList<String>();
-        if (m_mDProps.useWhiteList) {
-            //Restricts the metata to specific topics only
-            //topics.addAll(m_mDProps.topicsWhitelist);
-        }
         try {
             m_brokerIds = getBrokerList(true);
         } catch (Exception e) {
@@ -199,11 +190,29 @@ public class MetaDataManager implements IMetaDataManager
      */
     public List<kafka.javaapi.TopicMetadata> getAllTopicPartition()
     {
-        List<kafka.javaapi.TopicMetadata> data = getMetaDataFromAllBrokers();
+        List<kafka.javaapi.TopicMetadata> topicMetadataList = getMetaDataFromAllBrokers();
         HashSet<TopicPartition> exploredTopicPartition = new HashSet<TopicPartition>();
         List<kafka.javaapi.TopicMetadata> ret = new ArrayList<TopicMetadata>();
-        for (TopicMetadata item : data)
+
+        // Filter any white list topics
+        HashSet<String> whiteListTopics = new HashSet<String>(m_mDProps.whiteListTopics);
+        if (!whiteListTopics.isEmpty()) {
+            topicMetadataList = filterWhitelistTopics(topicMetadataList, whiteListTopics);
+        }
+
+        // Filter all blacklist topics
+        HashSet<String> blackListTopics = new HashSet<String>(m_mDProps.blackListTopics);
+        String regex = "";
+        if (!blackListTopics.isEmpty()) {
+            regex = createTopicRegEx(blackListTopics);
+        }
+
+        for (TopicMetadata item : topicMetadataList)
         {
+            if (Pattern.matches(regex, item.topic())) {
+                m_logger.debug("Discarding topic (blacklisted): " + item.topic());
+                continue;
+            }
             List<kafka.api.PartitionMetadata> pml = new ArrayList<kafka.api.PartitionMetadata>();
             for (PartitionMetadata part : item.partitionsMetadata())
             {
@@ -219,7 +228,6 @@ public class MetaDataManager implements IMetaDataManager
                     pml.add(pm);
                     exploredTopicPartition.add(new TopicPartition(item.topic(), part.partitionId()));
                 }
-
             }
             if (pml.size() > 0)
             {
@@ -233,6 +241,20 @@ public class MetaDataManager implements IMetaDataManager
         }
         Collections.sort(ret, new TopicMetadataComparator());
         return ret;
+    }
+
+    public List<TopicMetadata> filterWhitelistTopics(List<TopicMetadata> topicMetadataList,
+                                                     HashSet<String> whiteListTopics) {
+        ArrayList<TopicMetadata> filteredTopics = new ArrayList<TopicMetadata>();
+        String regex = createTopicRegEx(whiteListTopics);
+        for (TopicMetadata topicMetadata : topicMetadataList) {
+            if (Pattern.matches(regex, topicMetadata.topic())) {
+                filteredTopics.add(topicMetadata);
+            } else {
+                m_logger.debug("Discarding topic (non-whitelisted): " + topicMetadata.topic());
+            }
+        }
+        return filteredTopics;
     }
 
     /***

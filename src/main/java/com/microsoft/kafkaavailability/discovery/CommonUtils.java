@@ -9,8 +9,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
+import java.util.HashSet;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 public class CommonUtils {
 
@@ -94,5 +96,17 @@ public class CommonUtils {
         } catch (InterruptedException e) {
             // Do nothing
         }
+    }
+
+    public static String createTopicRegEx(HashSet<String> topicsSet) {
+        String regex = "";
+        StringBuilder stringbuilder = new StringBuilder();
+        for (String whiteList : topicsSet) {
+            stringbuilder.append(whiteList);
+            stringbuilder.append("|");
+        }
+        regex = "(" + stringbuilder.substring(0, stringbuilder.length() - 1) + ")";
+        Pattern.compile(regex);
+        return regex;
     }
 }

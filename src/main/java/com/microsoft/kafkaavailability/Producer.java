@@ -14,9 +14,9 @@ import org.slf4j.LoggerFactory;
 import javax.net.ssl.*;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
-import javax.net.ssl.SSLSocketFactory;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
@@ -26,8 +26,7 @@ import java.util.Properties;
 /***
  * Responsible for sending canary messages to specified topics and partitions in Kafka
  */
-public class Producer implements IProducer
-{
+public class Producer implements IProducer {
     private IPropertiesManager<ProducerProperties> m_propManager;
     final static Logger m_logger = LoggerFactory.getLogger(Producer.class);
     private int m_vipRetries = 3;
@@ -40,15 +39,13 @@ public class Producer implements IProducer
      * @param propManager     Used to get properties from json file
      * @param metaDataManager Used to get the broker list
      */
-    public Producer(IPropertiesManager<ProducerProperties> propManager, IMetaDataManager metaDataManager) throws MetaDataManagerException
-    {
+    public Producer(IPropertiesManager<ProducerProperties> propManager, IMetaDataManager metaDataManager) throws MetaDataManagerException {
         m_metaDataManager = metaDataManager;
         m_propManager = propManager;
         producerProperties = m_propManager.getProperties();
         Properties props = new Properties();
         String brokerList = "";
-        for (String broker : m_metaDataManager.getBrokerList(true))
-        {
+        for (String broker : m_metaDataManager.getBrokerList(true)) {
             brokerList += broker + ", ";
         }
         props.put("metadata.broker.list", brokerList);
@@ -67,8 +64,7 @@ public class Producer implements IProducer
      * @param partitionId partition id
      */
     @Override
-    public void SendCanaryToTopicPartition(String topicName, String partitionId)
-    {
+    public void SendCanaryToTopicPartition(String topicName, String partitionId) {
         m_producer.send(createCanaryMessage(topicName, partitionId));
     }
 
@@ -80,8 +76,7 @@ public class Producer implements IProducer
      * @param partitionId partition id
      * @return
      */
-    private KeyedMessage<String, String> createCanaryMessage(String topicName, String partitionId)
-    {
+    private KeyedMessage<String, String> createCanaryMessage(String topicName, String partitionId) {
         long runtime = new Date().getTime();
         String msg = producerProperties.messageStart + runtime + ",www.example.com," + partitionId;
         KeyedMessage<String, String> data = new KeyedMessage<String, String>(topicName, partitionId, msg);
@@ -161,14 +156,12 @@ public class Producer implements IProducer
         }
     }
 
-    protected static void setAcceptAllVerifier(HttpsURLConnection connection) throws NoSuchAlgorithmException, KeyManagementException
-    {
+    protected static void setAcceptAllVerifier(HttpsURLConnection connection) throws NoSuchAlgorithmException, KeyManagementException {
 
         // Create the socket factory.
         // Reusing the same socket factory allows sockets to be
         // reused, supporting persistent connections.
-        if (null == m_sslSocketFactory)
-        {
+        if (null == m_sslSocketFactory) {
             SSLContext sc = SSLContext.getInstance("SSL");
             sc.init(null, ALL_TRUSTING_TRUST_MANAGER, new java.security.SecureRandom());
             m_sslSocketFactory = sc.getSocketFactory();
@@ -182,29 +175,33 @@ public class Producer implements IProducer
     }
 
     private static final TrustManager[] ALL_TRUSTING_TRUST_MANAGER = new TrustManager[]{
-            new X509TrustManager()
-            {
-                public X509Certificate[] getAcceptedIssuers()
-                {
+            new X509TrustManager() {
+                public X509Certificate[] getAcceptedIssuers() {
                     return null;
                 }
 
-                public void checkClientTrusted(X509Certificate[] certs, String authType)
-                {
+                public void checkClientTrusted(X509Certificate[] certs, String authType) {
                 }
 
-                public void checkServerTrusted(X509Certificate[] certs, String authType)
-                {
+                public void checkServerTrusted(X509Certificate[] certs, String authType) {
                 }
             }
     };
 
-    private static final HostnameVerifier ALL_TRUSTING_HOSTNAME_VERIFIER = new HostnameVerifier()
-    {
-        public boolean verify(String hostname, SSLSession session)
-        {
+    private static final HostnameVerifier ALL_TRUSTING_HOSTNAME_VERIFIER = new HostnameVerifier() {
+        public boolean verify(String hostname, SSLSession session) {
             return true;
         }
     };
 
+    /**
+     * Closes this context
+     *
+     * @throws IOException
+     */
+    public void close() throws IOException {
+        if (m_producer != null) {
+            m_producer.close();
+        }
+    }
 }
