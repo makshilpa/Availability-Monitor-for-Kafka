@@ -115,7 +115,7 @@ public class AvailabilityThread implements Runnable {
         List<kafka.javaapi.TopicMetadata> whiteListTopicMetadata = new ArrayList<TopicMetadata>();
 
         for (kafka.javaapi.TopicMetadata topic : totalTopicMetadata) {
-            for (String whiteListTopic : metaDataProperties.topicsWhitelist)
+            for (String whiteListTopic : metaDataProperties.canaryTestTopics)
                 // java string compare while ignoring case
                 if (topic.topic().equalsIgnoreCase(whiteListTopic)) {
                     whiteListTopicMetadata.add(topic);

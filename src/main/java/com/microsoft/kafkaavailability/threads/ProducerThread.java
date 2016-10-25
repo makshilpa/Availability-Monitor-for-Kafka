@@ -22,11 +22,9 @@ import org.apache.curator.framework.CuratorFramework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.Phaser;
 
 public class ProducerThread implements Runnable {
@@ -120,7 +118,7 @@ public class ProducerThread implements Runnable {
         List<kafka.javaapi.TopicMetadata> whiteListTopicMetadata = new ArrayList<TopicMetadata>();
 
         for (kafka.javaapi.TopicMetadata topic : totalTopicMetadata) {
-            for (String whiteListTopic : metaDataProperties.topicsWhitelist)
+            for (String whiteListTopic : metaDataProperties.canaryTestTopics)
                 // java string compare while ignoring case
                 if (topic.topic().equalsIgnoreCase(whiteListTopic)) {
                     whiteListTopicMetadata.add(topic);
@@ -128,7 +126,7 @@ public class ProducerThread implements Runnable {
         }
 
         m_logger.info("totalTopicMetadata size:" + totalTopicMetadata.size());
-        m_logger.info("whiteListTopicMetadata size:" + whiteListTopicMetadata.size());
+        m_logger.info("canaryTestTopicsMetadata size:" + whiteListTopicMetadata.size());
 
         for (kafka.javaapi.TopicMetadata topic : whiteListTopicMetadata) {
             numPartitionsProducer += topic.partitionsMetadata().size();
@@ -183,7 +181,7 @@ public class ProducerThread implements Runnable {
                 metrics.register(new Gson().toJson(producerAvailability), new AvailabilityGauge(producerTryCount, producerTryCount - producerFailCount));
             }
         }
-
+        producer.close();
         ((MetaDataManager) metaDataManager).close();
         m_logger.info("Finished ProducerLatency");
     }
