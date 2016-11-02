@@ -9,6 +9,7 @@ package com.microsoft.kafkaavailability.properties;
 
 public class AppProperties
 {
+    public String environmentName;
     public String sqlConnectionString;
     public boolean reportKafkaIPAvailability;
     public boolean reportKafkaGTMAvailability;

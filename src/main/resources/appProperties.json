@@ -1,4 +1,5 @@
 {
+  "environmentName": "localhost",
   "sqlConnectionString": "jdbc:sqlserver://test;DatabaseName=test;lockTimeout=30000;loginTimeout=30000;user=test;password=test",
   "reportKafkaIpAvailability": true,
   "reportKafkaGTMAvailability": true,
@@ -23,5 +24,4 @@
   "leaderInfoThreadSleepTime": 300000,
   "producerThreadSleepTime": 60000,
   "reportInterval": 0
-  //"csvDirectory": ""
 }
