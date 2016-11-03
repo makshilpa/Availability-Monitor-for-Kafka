@@ -27,16 +27,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Phaser;
 
+import static com.microsoft.kafkaavailability.discovery.Constants.DEFAULT_ELAPSED_TIME;
+
 public class AvailabilityThread implements Runnable {
 
     final static Logger m_logger = LoggerFactory.getLogger(AvailabilityThread.class);
     Phaser m_phaser;
     CuratorFramework m_curatorFramework;
-    int m_threadSleepTime;
+    long m_threadSleepTime;
     String m_clusterName;
     MetricsFactory metricsFactory;
 
-    public AvailabilityThread(Phaser phaser, CuratorFramework curatorFramework, int threadSleepTime, String clusterName) {
+    public AvailabilityThread(Phaser phaser, CuratorFramework curatorFramework, long threadSleepTime, String clusterName) {
         this.m_phaser = phaser;
         this.m_curatorFramework = curatorFramework;
         //this.m_phaser.register(); //Registers/Add a new unArrived party to this phaser.
@@ -56,7 +58,7 @@ public class AvailabilityThread implements Runnable {
                     + "Phase-" + m_phaser.getPhase());
 
             try {
-                metricsFactory = MetricsFactory.getInstance();
+                metricsFactory = new MetricsFactory();
                 metricsFactory.configure(m_clusterName);
 
                 metricsFactory.start();
@@ -153,7 +155,7 @@ public class AvailabilityThread implements Runnable {
                     } catch (Exception e) {
                         clusterIPStatusFailCount++;
                         m_logger.error("ClusterIPStatus -- Error Writing to Topic: {}; Exception: {}", item.topic(), e);
-                        endTime = System.currentTimeMillis() + 60000;
+                        endTime = System.currentTimeMillis() + DEFAULT_ELAPSED_TIME;
                     }
 
                     histogramIPAvailabilityLatency.update(endTime - startTime);
@@ -167,7 +169,7 @@ public class AvailabilityThread implements Runnable {
                     } catch (Exception e) {
                         gtmIPStatusFailCount++;
                         m_logger.error("GTMIPStatus -- Error Writing to Topic: {}; Exception: {}", item.topic(), e);
-                        endTime = System.currentTimeMillis() + 60000;
+                        endTime = System.currentTimeMillis() + DEFAULT_ELAPSED_TIME;
                     }
                     histogramGTMAvailabilityLatency.update(endTime - startTime);
                 }

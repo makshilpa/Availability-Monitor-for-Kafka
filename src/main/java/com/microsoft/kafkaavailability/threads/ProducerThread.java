@@ -27,16 +27,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Phaser;
 
+import static com.microsoft.kafkaavailability.discovery.Constants.DEFAULT_ELAPSED_TIME;
+
 public class ProducerThread implements Runnable {
 
     final static Logger m_logger = LoggerFactory.getLogger(ProducerThread.class);
     Phaser m_phaser;
     CuratorFramework m_curatorFramework;
     MetricsFactory metricsFactory;
-    int m_threadSleepTime;
+    long m_threadSleepTime;
     String m_clusterName;
 
-    public ProducerThread(Phaser phaser, CuratorFramework curatorFramework, int threadSleepTime, String clusterName) {
+    public ProducerThread(Phaser phaser, CuratorFramework curatorFramework, long threadSleepTime, String clusterName) {
         this.m_phaser = phaser;
         this.m_curatorFramework = curatorFramework;
         //this.m_phaser.register(); //Registers/Add a new unArrived party to this phaser.
@@ -57,7 +59,7 @@ public class ProducerThread implements Runnable {
                     + "Phase-" + m_phaser.getPhase());
 
             try {
-                metricsFactory = MetricsFactory.getInstance();
+                metricsFactory = new MetricsFactory();
                 metricsFactory.configure(m_clusterName);
 
                 metricsFactory.start();
@@ -110,7 +112,7 @@ public class ProducerThread implements Runnable {
         int numPartitionsProducer = 0;
 
         //Auto creating a white listed topics, if not available.
-        metaDataManager.createWhiteListedTopics();
+        metaDataManager.createCanaryTopics();
 
         //This is full list of topics
         List<TopicMetadata> totalTopicMetadata = metaDataManager.getAllTopicPartition();
@@ -154,7 +156,7 @@ public class ProducerThread implements Runnable {
 
             for (kafka.javaapi.PartitionMetadata part : item.partitionsMetadata()) {
                 m_logger.debug("Writing to Topic: {}; Partition: {};", item.topic(), part.partitionId());
-                MetricNameEncoded producerPartitionLatency = new MetricNameEncoded("Producer.Partition.Latency", item.topic() + "-" + part.partitionId());
+                MetricNameEncoded producerPartitionLatency = new MetricNameEncoded("Producer.Partition.Latency", item.topic() + "##" + part.partitionId());
                 Histogram histogramProducerPartitionLatency = new Histogram(new SlidingWindowReservoir(1));
                 if (!metrics.getNames().contains(new Gson().toJson(producerPartitionLatency))) {
                     if (appProperties.sendProducerPartitionLatency)
@@ -168,7 +170,7 @@ public class ProducerThread implements Runnable {
                 } catch (Exception e) {
                     m_logger.error("Error Writing to Topic: {}; Partition: {}; Exception: {}", item.topic(), part.partitionId(), e);
                     producerFailCount++;
-                    endTime = System.currentTimeMillis() + 60000;
+                    endTime = System.currentTimeMillis() + DEFAULT_ELAPSED_TIME;
                 }
                 histogramProducerLatency.update(endTime - startTime);
                 histogramProducerTopicLatency.update(endTime - startTime);

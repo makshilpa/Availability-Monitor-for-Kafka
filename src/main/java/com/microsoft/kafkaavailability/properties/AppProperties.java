@@ -14,11 +14,6 @@ public class AppProperties
     public boolean reportKafkaGTMAvailability;
     public String kafkaClusterIP;
     public String kafkaGTMIP;
-    public boolean reportToSql;
-    public boolean reportToSlf4j;
-    public boolean reportToConsole;
-    public boolean reportToCsv;
-    public boolean reportToJmx;
     public boolean sendProducerAvailability;
     public boolean sendConsumerAvailability;
     public boolean sendProducerLatency;
@@ -29,9 +24,11 @@ public class AppProperties
     public boolean sendConsumerTopicLatency;
     public boolean sendProducerPartitionLatency;
     public boolean sendConsumerPartitionLatency;
-    public int producerThreadSleepTime;
-    public int leaderInfoThreadSleepTime;
-    public int availabilityThreadSleepTime;
-    public String csvDirectory;
+    public long producerThreadSleepTime;
+    public long consumerThreadSleepTime;
+    public long leaderInfoThreadSleepTime;
+    public long availabilityThreadSleepTime;
     public int reportInterval;
+    public long consumerPartitionTimeoutInSeconds;
+    public long consumerTopicTimeoutInSeconds;
 }

@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 
 public class MetricsFactory implements IMetricsFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(MetricsFactory.class);
-    private static final MetricsFactory INSTANCE = new MetricsFactory();
+    //private static final MetricsFactory INSTANCE = new MetricsFactory();
 
     private final MetricRegistry metricRegistry;
     private List<ConfiguredReporter> reporters = Collections.synchronizedList(new LinkedList<ConfiguredReporter>());
@@ -72,7 +72,7 @@ public class MetricsFactory implements IMetricsFactory {
      * Singleton access functions, but with package level access only for
      * testing.
      */
-    MetricsFactory() {
+    public MetricsFactory() {
         this(new MetricRegistry());
     }
 
@@ -82,38 +82,8 @@ public class MetricsFactory implements IMetricsFactory {
      *
      * @param registry the registry for use.
      */
-    MetricsFactory(MetricRegistry registry) {
+    public MetricsFactory(MetricRegistry registry) {
         metricRegistry = registry;
-    }
-
-    /**
-     * Get singleton instance
-     *
-     * @return MetricsFactory instance
-     */
-    public static MetricsFactory getInstance() {
-        return INSTANCE;
-    }
-
-    /**
-     * Get a new metrics provider for a specific class.
-     *
-     * @param prefix
-     * @param clazz
-     * @return
-     */
-    public static Metrics getMetrics(String prefix, Class<?> clazz) {
-        return new Metrics(getInstance(), prefix, clazz);
-    }
-
-    /**
-     * Get a new metrics provider for a specific class, without a prefix.
-     *
-     * @param clazz
-     * @return
-     */
-    public static Metrics getMetrics(Class<?> clazz) {
-        return new Metrics(getInstance(), clazz);
     }
 
     /**
@@ -315,4 +285,3 @@ public class MetricsFactory implements IMetricsFactory {
         }
     }
 }
-

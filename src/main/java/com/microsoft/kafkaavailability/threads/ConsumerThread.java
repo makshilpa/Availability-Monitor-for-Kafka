@@ -23,8 +23,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.Phaser;
+import java.util.Map;
+import java.util.concurrent.*;
+
+import static com.microsoft.kafkaavailability.discovery.Constants.DEFAULT_ELAPSED_TIME;
 
 public class ConsumerThread implements Runnable {
 
@@ -35,8 +39,9 @@ public class ConsumerThread implements Runnable {
     String m_serviceSpec;
     String m_clusterName;
     MetricsFactory metricsFactory;
+    long m_threadSleepTime;
 
-    public ConsumerThread(Phaser phaser, CuratorFramework curatorFramework, List<String> listServers, String serviceSpec, String clusterName) {
+    public ConsumerThread(Phaser phaser, CuratorFramework curatorFramework, List<String> listServers, String serviceSpec, String clusterName, long threadSleepTime) {
         this.m_phaser = phaser;
         this.m_curatorFramework = curatorFramework;
         this.m_phaser.register(); //Registers/Add a new unArrived party to this phaser.
@@ -44,10 +49,12 @@ public class ConsumerThread implements Runnable {
         m_listServers = listServers;
         m_serviceSpec = serviceSpec;
         m_clusterName = clusterName;
+        this.m_threadSleepTime = threadSleepTime;
     }
 
     @Override
     public void run() {
+        int sleepDuration = 1000;
         do {
             long lStartTime = System.nanoTime();
             MetricRegistry metrics;
@@ -56,7 +63,7 @@ public class ConsumerThread implements Runnable {
                     + "Phase-" + m_phaser.getPhase());
 
             try {
-                metricsFactory = MetricsFactory.getInstance();
+                metricsFactory = new MetricsFactory();
                 metricsFactory.configure(m_clusterName);
 
                 metricsFactory.start();
@@ -73,10 +80,21 @@ public class ConsumerThread implements Runnable {
                     m_logger.error(e.getMessage(), e);
                 }
             }
+            long elapsedTime = CommonUtils.stopWatch(lStartTime);
+            m_logger.info("Consumer Elapsed: " + elapsedTime + " milliseconds.");
 
-            m_logger.info("Consumer Elapsed: " + CommonUtils.stopWatch(lStartTime) + " milliseconds.");
+            while (elapsedTime < m_threadSleepTime && !m_phaser.isTerminated()) {
+                try {
+                    Thread.currentThread().sleep(sleepDuration);
+                    elapsedTime = elapsedTime + sleepDuration;
+                } catch (InterruptedException ie) {
+                    m_logger.error(ie.getMessage(), ie);
+                }
+            }
+
             m_phaser.arriveAndDeregister();
             CommonUtils.dumpPhaserState("After arrival of ConsumerThread", m_phaser);
+
         } while (!m_phaser.isTerminated());
         m_logger.info("ConsumerThread (run()) has been COMPLETED.");
     }
@@ -88,14 +106,14 @@ public class ConsumerThread implements Runnable {
         IPropertiesManager consumerPropertiesManager = new PropertiesManager<ConsumerProperties>("consumerProperties.json", ConsumerProperties.class);
         IPropertiesManager metaDataPropertiesManager = new PropertiesManager<MetaDataManagerProperties>("metadatamanagerProperties.json", MetaDataManagerProperties.class);
         IMetaDataManager metaDataManager = new MetaDataManager(m_curatorFramework, metaDataPropertiesManager);
-        MetaDataManagerProperties metaDataProperties = (MetaDataManagerProperties) metaDataPropertiesManager.getProperties();
-        IConsumer consumer = new Consumer(consumerPropertiesManager, metaDataManager);
 
         IPropertiesManager appPropertiesManager = new PropertiesManager<AppProperties>("appProperties.json", AppProperties.class);
         AppProperties appProperties = (AppProperties) appPropertiesManager.getProperties();
 
-        long startTime, endTime;
         int numPartitionsConsumers = 0;
+        //default to 15 Seconds, if not configured
+        long consumerPartitionTimeoutInSeconds = (appProperties.consumerPartitionTimeoutInSeconds > 0 ? appProperties.consumerPartitionTimeoutInSeconds : 15);
+        long consumerTopicTimeoutInSeconds = (appProperties.consumerTopicTimeoutInSeconds > 0 ? appProperties.consumerTopicTimeoutInSeconds : 45);
 
         //This is full list of topics
         List<kafka.javaapi.TopicMetadata> totalTopicMetadata = metaDataManager.getAllTopicPartition();
@@ -135,29 +153,60 @@ public class ConsumerThread implements Runnable {
                     metrics.register(new Gson().toJson(consumerTopicLatency), histogramConsumerTopicLatency);
             }
 
+            // check the number of available processors
+            int nThreads = Runtime.getRuntime().availableProcessors();
+            //Get ExecutorService from Executors utility class, thread pool size is number of available processors
+            ExecutorService newFixedThreadPool = Executors.newFixedThreadPool(nThreads);
+
+            //create a list to hold the Future object associated with Callable
+            //List<Future<Long>> futures = new ArrayList<Future<Long>>();
+            Map<Integer, Future<Long>> response = new HashMap<Integer, Future<Long>>();
+
             for (kafka.javaapi.PartitionMetadata part : item.partitionsMetadata()) {
                 m_logger.debug("Reading from Topic: {}; Partition: {};", item.topic(), part.partitionId());
-                MetricNameEncoded consumerPartitionLatency = new MetricNameEncoded("Consumer.Partition.Latency", item.topic() + "-" + part.partitionId());
+                consumerTryCount++;
+
+                //Create ConsumerPartitionThread instance
+                ConsumerPartitionThread consumerPartitionJob = new ConsumerPartitionThread(m_curatorFramework, item, part);
+
+                //submit Callable tasks to be executed by thread pool
+                Future<Long> future = newFixedThreadPool.submit(new JobManager(consumerPartitionTimeoutInSeconds, TimeUnit.SECONDS, consumerPartitionJob));
+
+                //add Future to the list, we can get return value using Future
+                //futures.add(future);
+                response.put(part.partitionId(), future);
+            }
+
+            //shut down the executor service now. This will make the executor accept no new threads
+            // and finish all existing threads in the queue
+            newFixedThreadPool.shutdown();
+
+            try {
+                // Wait until all threads are finish
+                newFixedThreadPool.awaitTermination(consumerTopicTimeoutInSeconds, TimeUnit.SECONDS); //Global Timeout
+            } catch (InterruptedException e) {
+                m_logger.error("Error Reading from Topic: {}; Exception: {}", item.topic(), e);
+            }
+
+            for (Integer key : response.keySet()) {
+                long elapsedTime = DEFAULT_ELAPSED_TIME;
+                try {
+                    // Future.get() waits for task to get completed
+                    elapsedTime = Long.valueOf(response.get(key).get());
+                } catch (InterruptedException | ExecutionException e) {
+                    m_logger.error("Error Reading from Topic: {}; Partition: {}; Exception: {}", item.topic(), key, e);
+                }
+                if (elapsedTime >= DEFAULT_ELAPSED_TIME)
+                    consumerFailCount++;
+                MetricNameEncoded consumerPartitionLatency = new MetricNameEncoded("Consumer.Partition.Latency", item.topic() + "##" + key);
                 Histogram histogramConsumerPartitionLatency = new Histogram(new SlidingWindowReservoir(1));
                 if (!metrics.getNames().contains(new Gson().toJson(consumerPartitionLatency))) {
                     if (appProperties.sendConsumerPartitionLatency)
                         metrics.register(new Gson().toJson(consumerPartitionLatency), histogramConsumerPartitionLatency);
                 }
-
-                startTime = System.currentTimeMillis();
-                try {
-                    consumerTryCount++;
-                    consumer.ConsumeFromTopicPartition(item.topic(), part.partitionId());
-                    endTime = System.currentTimeMillis();
-                } catch (Exception e) {
-                    m_logger.error("Error Reading from Topic: {}; Partition: {}; Exception: {}", item.topic(), part.partitionId(), e);
-                    consumerFailCount++;
-                    endTime = System.currentTimeMillis() + 60000;
-                    consumerFailCount++;
-                }
-                histogramConsumerLatency.update(endTime - startTime);
-                histogramConsumerTopicLatency.update(endTime - startTime);
-                histogramConsumerPartitionLatency.update(endTime - startTime);
+                histogramConsumerPartitionLatency.update(elapsedTime);
+                histogramConsumerTopicLatency.update(elapsedTime);
+                histogramConsumerLatency.update(elapsedTime);
             }
         }
 
