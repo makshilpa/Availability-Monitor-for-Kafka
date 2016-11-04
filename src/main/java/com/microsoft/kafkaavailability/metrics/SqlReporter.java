@@ -65,27 +65,25 @@ public class SqlReporter extends ScheduledReporter {
                        SortedMap<String, Histogram> histograms,
                        SortedMap<String, Meter> meters,
                        SortedMap<String, Timer> timers) {
-        final long timestamp = TimeUnit.MILLISECONDS.toSeconds(clock.getTime());
-
         try {
             for (Map.Entry<String, Gauge> entry : gauges.entrySet()) {
-                reportGauge(timestamp, entry.getKey(), entry.getValue());
+                reportGauge(entry.getKey(), entry.getValue());
             }
 
             for (Map.Entry<String, Counter> entry : counters.entrySet()) {
-                reportCounter(timestamp, entry.getKey(), entry.getValue());
+                reportCounter(entry.getKey(), entry.getValue());
             }
 
             for (Map.Entry<String, Histogram> entry : histograms.entrySet()) {
-                reportHistogram(timestamp, entry.getKey(), entry.getValue());
+                reportHistogram(entry.getKey(), entry.getValue());
             }
 
             for (Map.Entry<String, Meter> entry : meters.entrySet()) {
-                reportMeter(timestamp, entry.getKey(), entry.getValue());
+                reportMeter(entry.getKey(), entry.getValue());
             }
 
             for (Map.Entry<String, Timer> entry : timers.entrySet()) {
-                reportTimer(timestamp, entry.getKey(), entry.getValue());
+                reportTimer(entry.getKey(), entry.getValue());
             }
         } catch (Exception e) {
             m_logger.error(e.getMessage(), e);
@@ -101,7 +99,6 @@ public class SqlReporter extends ScheduledReporter {
         private Locale locale;
         private TimeUnit rateUnit;
         private TimeUnit durationUnit;
-        private Clock clock;
         private MetricFilter filter;
 
         private Builder(MetricRegistry registry) {
@@ -109,7 +106,6 @@ public class SqlReporter extends ScheduledReporter {
             this.locale = Locale.getDefault();
             this.rateUnit = TimeUnit.SECONDS;
             this.durationUnit = TimeUnit.MILLISECONDS;
-            this.clock = Clock.defaultClock();
             this.filter = MetricFilter.ALL;
         }
 
@@ -147,17 +143,6 @@ public class SqlReporter extends ScheduledReporter {
         }
 
         /**
-         * Use the given {@link Clock} instance for the time.
-         *
-         * @param clock a {@link Clock} instance
-         * @return {@code this}
-         */
-        public Builder withClock(Clock clock) {
-            this.clock = clock;
-            return this;
-        }
-
-        /**
          * Only report metrics which match the given filter.
          *
          * @param filter a {@link MetricFilter}
@@ -189,7 +174,6 @@ public class SqlReporter extends ScheduledReporter {
                     locale,
                     rateUnit,
                     durationUnit,
-                    clock,
                     filter);
         }
     }
@@ -200,7 +184,6 @@ public class SqlReporter extends ScheduledReporter {
     private final String userId;
 
     private final Locale locale;
-    private final Clock clock;
 
     private SqlReporter(MetricRegistry registry,
                         String connectionString,
@@ -208,13 +191,11 @@ public class SqlReporter extends ScheduledReporter {
                         Locale locale,
                         TimeUnit rateUnit,
                         TimeUnit durationUnit,
-                        Clock clock,
                         MetricFilter filter) {
         super(registry, "sql-reporter", filter, rateUnit, durationUnit);
         this.connectionString = connectionString;
         this.userId = userId;
         this.locale = locale;
-        this.clock = clock;
         try {
             initialize();
         } catch (Exception e) {
@@ -223,11 +204,10 @@ public class SqlReporter extends ScheduledReporter {
     }
 
 
-    private void reportTimer(long timestamp, String name, Timer timer) {
+    private void reportTimer(String name, Timer timer) {
         final Snapshot snapshot = timer.getSnapshot();
 
-        report(timestamp,
-                name,
+        report(name,
                 "count,max,mean,min,stddev,p50,p75,p95,p98,p99,p999,mean_rate,m1_rate,m5_rate,m15_rate,rate_unit,duration_unit",
                 "'%d','%f','%f','%f','%f','%f','%f','%f','%f','%f','%f','%f','%f','%f','%f','calls/%s','%s'",
                 timer.getCount(),
@@ -249,9 +229,8 @@ public class SqlReporter extends ScheduledReporter {
                 getDurationUnit());
     }
 
-    private void reportMeter(long timestamp, String name, Meter meter) {
-        report(timestamp,
-                name,
+    private void reportMeter(String name, Meter meter) {
+        report(name,
                 "count,mean_rate,m1_rate,m5_rate,m15_rate,rate_unit",
                 "'%d','%f','%f','%f','%f','events/%s'",
                 meter.getCount(),
@@ -262,11 +241,10 @@ public class SqlReporter extends ScheduledReporter {
                 getRateUnit());
     }
 
-    private void reportHistogram(long timestamp, String name, Histogram histogram) {
+    private void reportHistogram(String name, Histogram histogram) {
         final Snapshot snapshot = histogram.getSnapshot();
 
-        report(timestamp,
-                name,
+        report(name,
                 "count,max,mean,min,stddev,p50,p75,p95,p98,p99,p999",
                 "'%d','%d','%f','%d','%f','%f','%f','%f','%f','%f','%f'",
                 histogram.getCount(),
@@ -282,21 +260,22 @@ public class SqlReporter extends ScheduledReporter {
                 snapshot.get999thPercentile());
     }
 
-    private void reportCounter(long timestamp, String name, Counter counter) {
-        report(timestamp, name, "count", "'%d'", counter.getCount());
+    private void reportCounter(String name, Counter counter) {
+        report(name, "count", "'%d'", counter.getCount());
     }
 
-    private void reportGauge(long timestamp, String name, Gauge gauge) {
-        report(timestamp, name, "value", "'%s'", gauge.getValue());
+    private void reportGauge(String name, Gauge gauge) {
+        report(name, "value", "'%s'", gauge.getValue());
     }
 
-    private void report(long timestamp, String name, String header, String line, Object... values) {
+    private void report(String name, String header, String line, Object... values) {
         Connection con = null;
         Statement stmt = null;
-        int iMaxWaitInterval = 300000;
-        int iMaxRetries = 5;
+        int iMaxWaitInterval = 1800000;
+        int iMaxRetries = 10;
 
         MetricNameEncoded metricNameEncoded = new Gson().fromJson(name, MetricNameEncoded.class);
+        final long timestamp = metricNameEncoded.timeInSeconds();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         try {

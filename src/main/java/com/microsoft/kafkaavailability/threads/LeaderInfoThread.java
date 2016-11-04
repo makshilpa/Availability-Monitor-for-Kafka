@@ -20,9 +20,9 @@ public class LeaderInfoThread implements Runnable {
     final static Logger m_logger = LoggerFactory.getLogger(LeaderInfoThread.class);
     Phaser m_phaser;
     CuratorFramework m_curatorFramework;
-    int m_threadSleepTime;
+    long m_threadSleepTime;
 
-    public LeaderInfoThread(Phaser phaser, CuratorFramework curatorFramework, int threadSleepTime) {
+    public LeaderInfoThread(Phaser phaser, CuratorFramework curatorFramework, long threadSleepTime) {
         this.m_phaser = phaser;
         this.m_curatorFramework = curatorFramework;
         this.m_threadSleepTime = threadSleepTime;
