@@ -37,6 +37,7 @@ public class App {
     final static Logger m_logger = LoggerFactory.getLogger(App.class);
     static int m_sleepTime = 30000;
     static AppProperties appProperties;
+    static String m_cluster;
     static MetaDataManagerProperties metaDataProperties;
     static List<String> listServers;
 
@@ -54,6 +55,8 @@ public class App {
         Options options = new Options();
         options.addOption("r", "run", true, "Number of runs. Don't use this argument if you want to run infinitely.");
         options.addOption("s", "sleep", true, "Time (in milliseconds) to sleep between each run. Default is 30000");
+        options.addOption("c", "cluster", true, "Cluster name. will pull from here if appProperties is null");
+
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
         final CuratorFramework curatorFramework = CuratorClient.getCuratorFramework(metaDataProperties.zooKeeperHosts);
@@ -62,6 +65,13 @@ public class App {
             // parse the command line arguments
             CommandLine line = parser.parse(options, args);
             int howManyRuns;
+
+            if((appProperties.environmentName == null || appProperties.environmentName.equals("")) && line.hasOption("cluster")) {
+                appProperties.environmentName = line.getOptionValue("cluster");
+            } else {
+                throw new IllegalArgumentException("cluster name must be provided either on the command line or in the app properties");
+            }
+
             MDC.put("cluster", appProperties.environmentName);
 
             MDC.put("computerName", computerName);
@@ -198,7 +208,7 @@ public class App {
 
         Thread producerThread = new Thread(new ProducerThread(phaser, curatorFramework, producerThreadSleepTime, appProperties.environmentName), "ProducerThread-1");
         Thread availabilityThread = new Thread(new AvailabilityThread(phaser, curatorFramework, availabilityThreadSleepTime, appProperties.environmentName), "AvailabilityThread-1");
-        Thread consumerThread = new Thread(new ConsumerThread(phaser, curatorFramework, listServers, serviceSpec, appProperties.environmentName), "ConsumerThread-1");
+        Thread consumerThread = new Thread(new ConsumerThread(phaser, curatorFramework, listServers, serviceSpec, appProperties.environmentName, consumerThreadSleepTime), "ConsumerThread-1");
 
         leaderInfoThread.start();
         producerThread.start();
