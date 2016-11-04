@@ -1,4 +1,5 @@
 
 #ignore user settings
-.idea/workspace.xml
-
+.idea/libraries/*.xml
+.idea/copyright/profiles_settings.xml 
+.idea/*.xml
