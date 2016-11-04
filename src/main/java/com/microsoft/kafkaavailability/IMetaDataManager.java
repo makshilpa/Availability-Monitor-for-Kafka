@@ -13,6 +13,6 @@ public interface IMetaDataManager
     List<kafka.javaapi.TopicMetadata> getMetaDataFromAllBrokers();
     List<kafka.javaapi.TopicMetadata> getAllTopicPartition();
     void createTopicIfNotExist(String topicName, int partitions, int replicationFactor);
-    void createWhiteListedTopics();
+    void createCanaryTopics();
     void printEverything();
 }

@@ -12,4 +12,5 @@ public interface Constants {
 
     public static final String DEFAULT_REGISTRATION_ROOT = "/services";
     public static final String SERVICE_NAME = "kattool";
+    public static final long DEFAULT_ELAPSED_TIME = 60000;
 }

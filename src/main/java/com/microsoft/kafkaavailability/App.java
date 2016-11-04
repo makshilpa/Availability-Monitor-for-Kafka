@@ -142,48 +142,6 @@ public class App {
         }
     }
 
-    /*
-    private static void InitMetrics(int reportDuration) {
-        m_metrics = new MetricRegistry();
-
-        if (appProperties.reportToSlf4j) {
-            final Slf4jReporter slf4jReporter = Slf4jReporter.forRegistry(m_metrics)
-                    .outputTo(LoggerFactory.getLogger("KafkaMetrics.Raw"))
-                    .convertRatesTo(TimeUnit.SECONDS)
-                    .convertDurationsTo(TimeUnit.MILLISECONDS)
-                    .build();
-            slf4jReporter.start(reportDuration, TimeUnit.MILLISECONDS);
-        }
-        if (appProperties.reportToSql) {
-            final SqlReporter sqlReporter = SqlReporter.forRegistry(m_metrics)
-                    .formatFor(Locale.US)
-                    .convertRatesTo(TimeUnit.SECONDS)
-                    .convertDurationsTo(TimeUnit.MILLISECONDS)
-                    .build(appProperties.sqlConnectionString, m_cluster);
-            sqlReporter.start(reportDuration, TimeUnit.MILLISECONDS);
-        }
-        if (appProperties.reportToJmx) {
-            final JmxReporter jmxReporter = JmxReporter.forRegistry(m_metrics).build();
-            jmxReporter.start();
-        }
-        if (appProperties.reportToConsole) {
-            final ConsoleReporter consoleReporter = ConsoleReporter.forRegistry(m_metrics)
-                    .convertRatesTo(TimeUnit.SECONDS)
-                    .convertDurationsTo(TimeUnit.MILLISECONDS)
-                    .build();
-            consoleReporter.start(reportDuration, TimeUnit.MILLISECONDS);
-        }
-        if (appProperties.reportToCsv) {
-            final CsvReporter csvReporter = CsvReporter.forRegistry(m_metrics)
-                    .formatFor(Locale.US)
-                    .convertRatesTo(TimeUnit.SECONDS)
-                    .convertDurationsTo(TimeUnit.MILLISECONDS)
-                    .build(new File(appProperties.csvDirectory));
-            csvReporter.start(reportDuration, TimeUnit.MILLISECONDS);
-        }
-    }
-*/
-
     private static void RunOnce(CuratorFramework curatorFramework) throws IOException, MetaDataManagerException {
 
         /** The phaser is a nice synchronization barrier. */
@@ -225,15 +183,19 @@ public class App {
         };
 
         //default to 1 minute, if not configured
-        int producerThreadSleepTime = (appProperties.producerThreadSleepTime > 0 ? appProperties.producerThreadSleepTime : 60000);
+        long producerThreadSleepTime = (appProperties.producerThreadSleepTime > 0 ? appProperties.producerThreadSleepTime : 60000);
 
         //default to 1 minute, if not configured
-        int availabilityThreadSleepTime = (appProperties.availabilityThreadSleepTime > 0 ? appProperties.availabilityThreadSleepTime : 60000);
+        long availabilityThreadSleepTime = (appProperties.availabilityThreadSleepTime > 0 ? appProperties.availabilityThreadSleepTime : 60000);
 
         //default to 5 minutes, if not configured
-        int leaderInfoThreadSleepTime = (appProperties.leaderInfoThreadSleepTime > 0 ? appProperties.leaderInfoThreadSleepTime : 300000);
+        long leaderInfoThreadSleepTime = (appProperties.leaderInfoThreadSleepTime > 0 ? appProperties.leaderInfoThreadSleepTime : 300000);
+
+        //default to 5 minutes, if not configured
+        long consumerThreadSleepTime = (appProperties.consumerThreadSleepTime > 0 ? appProperties.consumerThreadSleepTime : 300000);
 
         Thread leaderInfoThread = new Thread(new LeaderInfoThread(phaser, curatorFramework, leaderInfoThreadSleepTime), "LeaderInfoThread-1");
+
         Thread producerThread = new Thread(new ProducerThread(phaser, curatorFramework, producerThreadSleepTime, appProperties.environmentName), "ProducerThread-1");
         Thread availabilityThread = new Thread(new AvailabilityThread(phaser, curatorFramework, availabilityThreadSleepTime, appProperties.environmentName), "AvailabilityThread-1");
         Thread consumerThread = new Thread(new ConsumerThread(phaser, curatorFramework, listServers, serviceSpec, appProperties.environmentName), "ConsumerThread-1");
@@ -268,7 +230,7 @@ public class App {
          */
         // deregistering the main thread
         phaser.arriveAndDeregister();
-        CommonUtils.dumpPhaserState("After main thread arrived and deregistered", phaser);
+        //CommonUtils.dumpPhaserState("After main thread arrived and deregistered", phaser);
 
         m_logger.info("All Finished.");
     }

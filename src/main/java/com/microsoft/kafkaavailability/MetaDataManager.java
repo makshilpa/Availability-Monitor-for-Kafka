@@ -71,9 +71,9 @@ public class MetaDataManager implements IMetaDataManager
     }
 
     @Override
-    public void createWhiteListedTopics() {
+    public void createCanaryTopics() {
         List<String> topics = new ArrayList<String>();
-        if (m_mDProps.canaryTestTopics.isEmpty()) {
+        if (!m_mDProps.canaryTestTopics.isEmpty()) {
             topics.addAll(m_mDProps.canaryTestTopics);
             int replicationFactor = (m_mDProps.replicationFactor > 0) ? m_mDProps.replicationFactor : 3;
             try {
