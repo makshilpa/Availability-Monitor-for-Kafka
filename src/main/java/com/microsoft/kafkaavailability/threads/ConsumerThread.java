@@ -199,6 +199,7 @@ public class ConsumerThread implements Runnable {
                 }
                 if (elapsedTime >= DEFAULT_ELAPSED_TIME) {
                     m_logger.error("Exception or Timeout during consuming from [{},{}]", item.topic(), key);
+                    topicConsumerFailCount++;
                     consumerFailCount++;
                 }
                 MetricNameEncoded consumerPartitionLatency = new MetricNameEncoded("Consumer.Partition.Latency", item.topic() + "##" + key);
