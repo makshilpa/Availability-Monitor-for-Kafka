@@ -35,7 +35,7 @@ import java.util.concurrent.Phaser;
  */
 public class App {
     final static Logger m_logger = LoggerFactory.getLogger(App.class);
-    static int m_sleepTime = 30000;
+    static int m_sleepTime = 5000;
     static String m_cluster = "localhost";
     static AppProperties appProperties;
     static MetaDataManagerProperties metaDataProperties;
