@@ -146,6 +146,9 @@ public class ProducerThread implements Runnable {
         m_logger.info("start topic partition loop");
 
         for (kafka.javaapi.TopicMetadata item : whiteListTopicMetadata) {
+            boolean isTopicAvailable = true;
+            int topicProducerFailCount = 0;
+            producerTryCount++;
             final SlidingWindowReservoir topicLatency = new SlidingWindowReservoir(item.partitionsMetadata().size());
             Histogram histogramProducerTopicLatency = new Histogram(topicLatency);
             MetricNameEncoded producerTopicLatency = new MetricNameEncoded("Producer.Topic.Latency", item.topic());
@@ -164,17 +167,27 @@ public class ProducerThread implements Runnable {
                 }
                 startTime = System.currentTimeMillis();
                 try {
-                    producerTryCount++;
+
                     producer.SendCanaryToTopicPartition(item.topic(), Integer.toString(part.partitionId()));
                     endTime = System.currentTimeMillis();
                 } catch (Exception e) {
                     m_logger.error("Error Writing to Topic: {}; Partition: {}; Exception: {}", item.topic(), part.partitionId(), e);
-                    producerFailCount++;
+                    topicProducerFailCount++;
                     endTime = System.currentTimeMillis() + DEFAULT_ELAPSED_TIME;
+                    if (isTopicAvailable) {
+                        producerFailCount++;
+                        isTopicAvailable = false;
+                    }
                 }
                 histogramProducerLatency.update(endTime - startTime);
                 histogramProducerTopicLatency.update(endTime - startTime);
                 histogramProducerPartitionLatency.update(endTime - startTime);
+            }
+            if (appProperties.sendProducerTopicAvailability) {
+                MetricNameEncoded producerTopicAvailability = new MetricNameEncoded("Producer.Topic.Availability", item.topic());
+                if (!metrics.getNames().contains(new Gson().toJson(producerTopicAvailability))) {
+                    metrics.register(new Gson().toJson(producerTopicAvailability), new AvailabilityGauge(item.partitionsMetadata().size(), item.partitionsMetadata().size() - topicProducerFailCount));
+                }
             }
         }
         if (appProperties.sendProducerAvailability) {
@@ -187,5 +200,4 @@ public class ProducerThread implements Runnable {
         ((MetaDataManager) metaDataManager).close();
         m_logger.info("Finished ProducerLatency");
     }
-
 }

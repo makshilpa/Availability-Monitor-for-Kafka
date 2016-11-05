@@ -16,6 +16,8 @@ public class AppProperties
     public String kafkaGTMIP;
     public boolean sendProducerAvailability;
     public boolean sendConsumerAvailability;
+    public boolean sendProducerTopicAvailability;
+    public boolean sendConsumerTopicAvailability;
     public boolean sendProducerLatency;
     public boolean sendIPAvailabilityLatency;
     public boolean sendGTMAvailabilityLatency;
