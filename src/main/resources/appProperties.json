@@ -20,7 +20,6 @@
   "producerThreadSleepTime": 60000,
   "reportInterval": 0,
   "consumerThreadSleepTime": 300000,
-  "reportInterval": 0,
   "consumerPartitionTimeoutInSeconds": 15,
   "consumerTopicTimeoutInSeconds": 45
 }
