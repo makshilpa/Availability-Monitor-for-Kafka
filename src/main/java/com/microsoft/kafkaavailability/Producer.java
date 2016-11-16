@@ -144,7 +144,7 @@ public class Producer implements IProducer {
                     throw e;
 
                 try {
-                    Thread.sleep(2000);
+                    Thread.sleep(500);
                 } catch (Exception ex) {
                     m_logger.error(ex.getMessage(), ex);
                 }

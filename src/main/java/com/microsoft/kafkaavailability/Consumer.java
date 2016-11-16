@@ -12,6 +12,7 @@ import kafka.api.PartitionOffsetRequestInfo;
 import kafka.common.ErrorMapping;
 import kafka.common.TopicAndPartition;
 import kafka.javaapi.*;
+import kafka.javaapi.consumer.SimpleConsumer;
 import kafka.message.MessageAndOffset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,98 +83,104 @@ public class Consumer implements IConsumer {
         String leadBroker = metadata.leader().host();
         String clientName = "Client_" + a_topic + "_" + a_partition;
 
-        kafka.javaapi.consumer.SimpleConsumer consumer = new kafka.javaapi.consumer.SimpleConsumer(leadBroker, m_consumerProperties.port, m_consumerProperties.soTimeout, m_consumerProperties.bufferSize, clientName);
-        long readOffset = getLastOffset(consumer, a_topic, a_partition, kafka.api.OffsetRequest.EarliestTime(), clientName);
+        SimpleConsumer consumer = null;
+        try {
+            consumer = new kafka.javaapi.consumer.SimpleConsumer(leadBroker, m_consumerProperties.port, m_consumerProperties.soTimeout, m_consumerProperties.bufferSize, clientName);
+            long readOffset = getLastOffset(consumer, a_topic, a_partition, kafka.api.OffsetRequest.EarliestTime(), clientName);
 
-        int numErrors = 0;
-        int maxReads = m_consumerProperties.maxReads;
-        while (maxReads > 0) {
-            if (consumer == null) {
-                consumer = new kafka.javaapi.consumer.SimpleConsumer(leadBroker, m_consumerProperties.port, m_consumerProperties.soTimeout, m_consumerProperties.bufferSize, clientName);
-            }
-            FetchRequest req = new FetchRequestBuilder()
-                    .clientId(clientName)
-                    .addFetch(a_topic, a_partition, readOffset, m_consumerProperties.fetchSize) // Note: this fetchSize of 100000 might need to be increased if large batches are written to Kafka
-                    .build();
-            logger.debug("Reading " + m_consumerProperties.fetchSize
-                    + " from Kafka broker " + leadBroker + ":" + m_consumerProperties.port
-                    + " with offset " + readOffset);
-
-            FetchResponse fetchResponse = consumer.fetch(req);
-
-            if (fetchResponse.hasError()) {
-                numErrors++;
-                // Something went wrong!
-                short code = fetchResponse.errorCode(a_topic, a_partition);
-                logger.error("Error fetching data from the Broker:" + leadBroker + " Reason: " + code);
-                KafkaError error = KafkaError.getError(code);
-
-                String message = "Error fetching data from [" + a_partition + "] for topic [" + a_topic + "]: [" + error + "]";
-                logger.error(message);
-
-                if (numErrors > KAFKA_MAX_READ_ERRORS) {
-                    logger.info("Kafka consumer reached maximum number of read errors, aborting read");
-                    break;
+            int numErrors = 0;
+            int maxReads = m_consumerProperties.maxReads;
+            while (maxReads > 0) {
+                if (consumer == null) {
+                    consumer = new kafka.javaapi.consumer.SimpleConsumer(leadBroker, m_consumerProperties.port, m_consumerProperties.soTimeout, m_consumerProperties.bufferSize, clientName);
                 }
+                FetchRequest req = new FetchRequestBuilder()
+                        .clientId(clientName)
+                        .addFetch(a_topic, a_partition, readOffset, m_consumerProperties.fetchSize) // Note: this fetchSize of 100000 might need to be increased if large batches are written to Kafka
+                        .build();
+                logger.debug("Reading " + m_consumerProperties.fetchSize
+                        + " from Kafka broker " + leadBroker + ":" + m_consumerProperties.port
+                        + " with offset " + readOffset);
 
-                if (code == ErrorMapping.OffsetOutOfRangeCode()) {
-                    // We asked for an invalid offset. For simple case ask for the last element to reset
-                    long invalidReadOffset = readOffset;
-                    readOffset = getLastOffset(consumer, a_topic, a_partition, kafka.api.OffsetRequest.LatestTime(), clientName);
-                    logger.error("Consumer requested an invalid offset " + invalidReadOffset + ". Resetting to " + readOffset);
-                    continue;
-                }
-                consumer.close();
-                consumer = null;
-                try {
-                    logger.debug("Consumer encountered an error with latest fetch. Attempting to find new leader");
-                    leadBroker = findNewLeader(leadBroker, a_topic, a_partition, m_consumerProperties.port);
-                } catch (Exception e) {
-                    logger.error("Kafka consumer aborting read due to exception thrown finding leader");
-                    break;
-                }
+                FetchResponse fetchResponse = consumer.fetch(req);
 
-                continue;
-            }
+                if (fetchResponse.hasError()) {
+                    numErrors++;
+                    // Something went wrong!
+                    short code = fetchResponse.errorCode(a_topic, a_partition);
+                    logger.error("Error fetching data from the Broker:" + leadBroker + " Reason: " + code);
+                    KafkaError error = KafkaError.getError(code);
 
-            if (fetchResponse == null) {
-                logger.error("Consumer could not retrieve Kafka fetch response from the Broker:" + leadBroker);
-                continue;
-            }
+                    String message = "Error fetching data from [" + a_partition + "] for topic [" + a_topic + "]: [" + error + "]";
+                    logger.error(message);
 
-            numErrors = 0;
+                    if (numErrors > KAFKA_MAX_READ_ERRORS) {
+                        logger.info("Kafka consumer reached maximum number of read errors, aborting read");
+                        break;
+                    }
 
-            long numRead = 0;
-            for (MessageAndOffset messageAndOffset : fetchResponse.messageSet(a_topic, a_partition)) {
-                long currentOffset = messageAndOffset.offset();
-                if (currentOffset < readOffset) {
-                    logger.error("Found an old offset: " + currentOffset + " Expecting: " + readOffset + "for topic:" + a_topic + ", partition:" + a_partition);
+                    if (code == ErrorMapping.OffsetOutOfRangeCode()) {
+                        // We asked for an invalid offset. For simple case ask for the last element to reset
+                        long invalidReadOffset = readOffset;
+                        readOffset = getLastOffset(consumer, a_topic, a_partition, kafka.api.OffsetRequest.LatestTime(), clientName);
+                        logger.error("Consumer requested an invalid offset " + invalidReadOffset + ". Resetting to " + readOffset);
+                        continue;
+                    }
+                    consumer.close();
+                    consumer = null;
+                    try {
+                        logger.debug("Consumer encountered an error with latest fetch. Attempting to find new leader");
+                        leadBroker = findNewLeader(leadBroker, a_topic, a_partition, m_consumerProperties.port);
+                    } catch (Exception e) {
+                        logger.error("Kafka consumer aborting read due to exception thrown finding leader");
+                        break;
+                    }
+
                     continue;
                 }
 
-                readOffset = messageAndOffset.nextOffset();
-                try {
-                    // read message bytes
-                    ByteBuffer payload = messageAndOffset.message().payload();
-
-                    byte[] bytes = new byte[payload.limit()];
-                    payload.get(bytes);
-                    logger.debug(String.valueOf(messageAndOffset.offset()) + ": " + new String(bytes, "UTF-8"));
-                } catch (UnsupportedEncodingException e) {
-                    logger.error("Consumer error converting kafka item to String: " + e.getMessage());
-                    break;
+                if (fetchResponse == null) {
+                    logger.error("Consumer could not retrieve Kafka fetch response from the Broker:" + leadBroker);
+                    continue;
                 }
 
-                numRead++;
-                maxReads--;
-            }
+                numErrors = 0;
 
-            if (numRead == 0) {
-                logger.debug("No messages found to read from Kafka broker " + leadBroker + " at offset " + readOffset);
-                break;
+                long numRead = 0;
+                for (MessageAndOffset messageAndOffset : fetchResponse.messageSet(a_topic, a_partition)) {
+                    long currentOffset = messageAndOffset.offset();
+                    if (currentOffset < readOffset) {
+                        logger.error("Found an old offset: " + currentOffset + " Expecting: " + readOffset + "for topic:" + a_topic + ", partition:" + a_partition);
+                        continue;
+                    }
+
+                    readOffset = messageAndOffset.nextOffset();
+                    try {
+                        // read message bytes
+                        ByteBuffer payload = messageAndOffset.message().payload();
+
+                        byte[] bytes = new byte[payload.limit()];
+                        payload.get(bytes);
+                        logger.debug(String.valueOf(messageAndOffset.offset()) + ": " + new String(bytes, "UTF-8"));
+                    } catch (UnsupportedEncodingException e) {
+                        logger.error("Consumer error converting kafka item to String: " + e.getMessage());
+                        break;
+                    }
+
+                    numRead++;
+                    maxReads--;
+                }
+
+                if (numRead == 0) {
+                    logger.debug("No messages found to read from Kafka broker " + leadBroker + " at offset " + readOffset);
+                    break;
+                }
             }
         }
-        if (consumer != null) consumer.close();
+        finally {
+            if (consumer != null)
+                consumer.close();
+        }
     }
 
     /***
@@ -210,10 +217,10 @@ public class Consumer implements IConsumer {
      * old broker. Retries automatically in scenario whereby Zookeeper has not immediately
      * rebalanced.
      *
-     * @param oldLeader broker which was previously the leader
-     * @param topic     topic for which to acquire new leader
-     * @param partition partition for which to acquire new leader
-     * @param port      port on which kafka broker runs
+     * @param a_oldLeader broker which was previously the leader
+     * @param a_topic     topic for which to acquire new leader
+     * @param a_partition partition for which to acquire new leader
+     * @param a_port      port on which kafka broker runs
      * @return hostname of new lead broker
      * @throws Exception when no leader has been identified
      */

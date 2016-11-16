@@ -18,7 +18,8 @@ public class CommonUtils {
 
     private static Logger log = LoggerFactory.getLogger(CommonUtils.class);
 
-    /**     * Get the ip address of this host
+    /**
+     * Get the ip address of this host
      */
     public static String getIpAddress() {
         String ipAddress = null;
@@ -34,7 +35,8 @@ public class CommonUtils {
         return (ipAddress);
     }
 
-    /**     * Get the ComputerName of this host
+    /**
+     * Get the ComputerName of this host
      */
     public static String getComputerName() {
         String hostname = "Unknown";
@@ -52,7 +54,7 @@ public class CommonUtils {
 
     /**
      * Method to measure elapsed time since start time until now
-     *
+     * <p>
      * Example:
      * long startup = System.nanoTime();
      * Thread.sleep(3000);
@@ -62,7 +64,7 @@ public class CommonUtils {
      * @return Elapsed time in seconds as double
      */
     public static long stopWatch(long startTime) {
-        long elapsedTime = System.nanoTime()-startTime;
+        long elapsedTime = System.nanoTime() - startTime;
         return TimeUnit.MILLISECONDS.convert(elapsedTime, TimeUnit.NANOSECONDS);
     }
 
@@ -87,8 +89,7 @@ public class CommonUtils {
     /**
      * Sleep for the specified time, ignoring any exceptions that occur
      *
-     * @param millis
-     *            The number of milliseconds to sleep for
+     * @param millis The number of milliseconds to sleep for
      */
     public static void sleep(long millis) {
         try {
@@ -108,5 +109,22 @@ public class CommonUtils {
         regex = "(" + stringbuilder.substring(0, stringbuilder.length() - 1) + ")";
         Pattern.compile(regex);
         return regex;
+    }
+
+    /**
+     * <p>Checks if a String is empty ("") or null.</p>
+     * <p>
+     * <pre>
+     * CommonUtils.isNullorEmptyorWhitespace(null)      = true
+     * CommonUtils.isNullorEmptyorWhitespace("")        = true
+     * CommonUtils.isNullorEmptyorWhitespace("test")     = false
+     * CommonUtils.isNullorEmptyorWhitespace("  test  ") = false
+     * </pre>
+     *
+     * @param obj the String to check, may be null
+     * @return <code>true</code> if the String is null, empty or whitespace
+     */
+    public static Boolean isNullorEmptyorWhitespace(String obj) {
+        return obj == null || obj.isEmpty() || obj.trim().isEmpty();
     }
 }

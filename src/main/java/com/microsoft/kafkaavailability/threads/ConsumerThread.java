@@ -111,9 +111,13 @@ public class ConsumerThread implements Runnable {
         AppProperties appProperties = (AppProperties) appPropertiesManager.getProperties();
 
         int numPartitionsConsumers = 0;
+
+        // check the number of available processors
+        int nThreads = Runtime.getRuntime().availableProcessors();
+
         //default to 15 Seconds, if not configured
-        long consumerPartitionTimeoutInSeconds = (appProperties.consumerPartitionTimeoutInSeconds > 0 ? appProperties.consumerPartitionTimeoutInSeconds : 15);
-        long consumerTopicTimeoutInSeconds = (appProperties.consumerTopicTimeoutInSeconds > 0 ? appProperties.consumerTopicTimeoutInSeconds : 45);
+        long consumerPartitionTimeoutInSeconds = (appProperties.consumerPartitionTimeoutInSeconds > 0 ? appProperties.consumerPartitionTimeoutInSeconds : 30);
+        long consumerTopicTimeoutInSeconds = (appProperties.consumerTopicTimeoutInSeconds > 0 ? appProperties.consumerTopicTimeoutInSeconds : 60);
 
         //This is full list of topics
         List<kafka.javaapi.TopicMetadata> totalTopicMetadata = metaDataManager.getAllTopicPartition();
@@ -144,7 +148,10 @@ public class ConsumerThread implements Runnable {
             }
         }
         for (kafka.javaapi.TopicMetadata item : allTopicMetadata) {
+            boolean isTopicAvailable = true;
             m_logger.info("Reading from Topic: {};", item.topic());
+
+            consumerTryCount++;
             final SlidingWindowReservoir topicLatency = new SlidingWindowReservoir(item.partitionsMetadata().size());
             Histogram histogramConsumerTopicLatency = new Histogram(topicLatency);
             MetricNameEncoded consumerTopicLatency = new MetricNameEncoded("Consumer.Topic.Latency", item.topic());
@@ -153,8 +160,6 @@ public class ConsumerThread implements Runnable {
                     metrics.register(new Gson().toJson(consumerTopicLatency), histogramConsumerTopicLatency);
             }
 
-            // check the number of available processors
-            int nThreads = Runtime.getRuntime().availableProcessors();
             //Get ExecutorService from Executors utility class, thread pool size is number of available processors
             ExecutorService newFixedThreadPool = Executors.newFixedThreadPool(nThreads);
 
@@ -164,7 +169,6 @@ public class ConsumerThread implements Runnable {
 
             for (kafka.javaapi.PartitionMetadata part : item.partitionsMetadata()) {
                 m_logger.debug("Reading from Topic: {}; Partition: {};", item.topic(), part.partitionId());
-                consumerTryCount++;
 
                 //Create ConsumerPartitionThread instance
                 ConsumerPartitionThread consumerPartitionJob = new ConsumerPartitionThread(m_curatorFramework, item, part);
@@ -188,6 +192,7 @@ public class ConsumerThread implements Runnable {
                 m_logger.error("Error Reading from Topic: {}; Exception: {}", item.topic(), e);
             }
 
+            int topicConsumerFailCount = 0;
             for (Integer key : response.keySet()) {
                 long elapsedTime = DEFAULT_ELAPSED_TIME;
                 try {
@@ -196,8 +201,13 @@ public class ConsumerThread implements Runnable {
                 } catch (InterruptedException | ExecutionException e) {
                     m_logger.error("Error Reading from Topic: {}; Partition: {}; Exception: {}", item.topic(), key, e);
                 }
-                if (elapsedTime >= DEFAULT_ELAPSED_TIME)
-                    consumerFailCount++;
+                if (elapsedTime >= DEFAULT_ELAPSED_TIME) {
+                    topicConsumerFailCount++;
+                    if (isTopicAvailable) {
+                        consumerFailCount++;
+                        isTopicAvailable = false;
+                    }
+                }
                 MetricNameEncoded consumerPartitionLatency = new MetricNameEncoded("Consumer.Partition.Latency", item.topic() + "##" + key);
                 Histogram histogramConsumerPartitionLatency = new Histogram(new SlidingWindowReservoir(1));
                 if (!metrics.getNames().contains(new Gson().toJson(consumerPartitionLatency))) {
@@ -207,6 +217,12 @@ public class ConsumerThread implements Runnable {
                 histogramConsumerPartitionLatency.update(elapsedTime);
                 histogramConsumerTopicLatency.update(elapsedTime);
                 histogramConsumerLatency.update(elapsedTime);
+            }
+            if (appProperties.sendConsumerTopicAvailability) {
+                MetricNameEncoded consumerTopicAvailability = new MetricNameEncoded("Consumer.Topic.Availability", item.topic());
+                if (!metrics.getNames().contains(new Gson().toJson(consumerTopicAvailability))) {
+                    metrics.register(new Gson().toJson(consumerTopicAvailability), new AvailabilityGauge(response.keySet().size(), response.keySet().size() - topicConsumerFailCount));
+                }
             }
         }
 

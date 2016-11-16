@@ -7,6 +7,8 @@
   "kafkaGTMIP": "1.1.1.1",
   "sendProducerAvailability": true,
   "sendConsumerAvailability": true,
+  "sendProducerTopicAvailability": true,
+  "sendConsumerTopicAvailability": true,
   "sendProducerLatency": true,
   "sendConsumerLatency": true,
   "sendIPAvailabilityLatency": true,
@@ -19,7 +21,6 @@
   "leaderInfoThreadSleepTime": 300000,
   "producerThreadSleepTime": 60000,
   "reportInterval": 0,
-  "consumerThreadSleepTime": 300000,
-  "consumerPartitionTimeoutInSeconds": 15,
-  "consumerTopicTimeoutInSeconds": 45
+  "consumerPartitionTimeoutInSeconds": 30,
+  "consumerTopicTimeoutInSeconds": 60
 }
