@@ -35,9 +35,12 @@ import java.util.concurrent.Phaser;
  */
 public class App {
     final static Logger m_logger = LoggerFactory.getLogger(App.class);
-    static int m_sleepTime = 5000;
+
+    static int m_sleepTime = 30000;
     static String m_cluster = "localhost";
+
     static AppProperties appProperties;
+    static String m_cluster;
     static MetaDataManagerProperties metaDataProperties;
     static List<String> listServers;
 
@@ -48,15 +51,15 @@ public class App {
 
     public static void main(String[] args) throws IOException, MetaDataManagerException, InterruptedException {
         m_logger.info("Starting KafkaAvailability Tool");
-        IPropertiesManager appPropertiesManager = new PropertiesManager<AppProperties>("appProperties.json", AppProperties.class);
-        IPropertiesManager metaDataPropertiesManager = new PropertiesManager<MetaDataManagerProperties>("metadatamanagerProperties.json", MetaDataManagerProperties.class);
+        IPropertiesManager appPropertiesManager = new PropertiesManager<>("appProperties.json", AppProperties.class);
+        IPropertiesManager metaDataPropertiesManager = new PropertiesManager<>("metadatamanagerProperties.json", MetaDataManagerProperties.class);
         appProperties = (AppProperties) appPropertiesManager.getProperties();
         metaDataProperties = (MetaDataManagerProperties) metaDataPropertiesManager.getProperties();
         Options options = new Options();
         options.addOption("r", "run", true, "Number of runs. Don't use this argument if you want to run infinitely.");
         options.addOption("s", "sleep", true, "Time (in milliseconds) to sleep between each run. Default is 30000");
-        Option clusterOption = Option.builder("c").hasArg().required(true).longOpt("cluster").desc("(REQUIRED) Cluster name").build();
-        options.addOption(clusterOption);
+        options.addOption("c", "cluster", true, "Cluster name. will pull from here if appProperties is null");
+
         CommandLineParser parser = new DefaultParser();
         HelpFormatter formatter = new HelpFormatter();
         final CuratorFramework curatorFramework = CuratorClient.getCuratorFramework(metaDataProperties.zooKeeperHosts);
@@ -66,8 +69,13 @@ public class App {
             CommandLine line = parser.parse(options, args);
             int howManyRuns;
 
-            m_cluster = line.getOptionValue("cluster");
-            MDC.put("cluster", m_cluster);
+            if((appProperties.environmentName == null || appProperties.environmentName.equals("")) && line.hasOption("cluster")) {
+                appProperties.environmentName = line.getOptionValue("cluster");
+            } else {
+                throw new IllegalArgumentException("cluster name must be provided either on the command line or in the app properties");
+            }
+
+            MDC.put("cluster", appProperties.environmentName);
 
             MDC.put("computerName", computerName);
             CuratorManager curatorManager = CallRegister(curatorFramework);
@@ -107,7 +115,7 @@ public class App {
         serviceSpec = ip + ":" + Integer.valueOf(port).toString();
 
         String basePath = new StringBuilder().append(registrationPath).toString();
-        m_logger.info("Creating client, KAT in the Environment:" + m_cluster);
+        m_logger.info("Creating client, KAT in the Environment:" + appProperties.environmentName);
 
         final CuratorManager curatorManager = new CuratorManager(curatorFramework, basePath, ip, serviceSpec);
 
@@ -137,7 +145,7 @@ public class App {
             //wait for rest clients to warm up.
             Thread.sleep(5000);
             listServers = curatorManager.listServiceInstance();
-            m_logger.info("Environment Name:" + m_cluster + ". List of KAT Clients:" + Arrays.toString(listServers.toArray()));
+            m_logger.info("Environment Name:" + appProperties.environmentName + ". List of KAT Clients:" + Arrays.toString(listServers.toArray()));
 
             curatorManager.verifyRegistrations();
         } catch (Exception e) {
@@ -200,9 +208,10 @@ public class App {
         long consumerThreadSleepTime = (appProperties.consumerThreadSleepTime > 0 ? appProperties.consumerThreadSleepTime : 300000);
 
         Thread leaderInfoThread = new Thread(new LeaderInfoThread(phaser, curatorFramework, leaderInfoThreadSleepTime), "LeaderInfoThread-1");
-        Thread producerThread = new Thread(new ProducerThread(phaser, curatorFramework, producerThreadSleepTime, m_cluster), "ProducerThread-1");
-        Thread availabilityThread = new Thread(new AvailabilityThread(phaser, curatorFramework, availabilityThreadSleepTime, m_cluster), "AvailabilityThread-1");
-        Thread consumerThread = new Thread(new ConsumerThread(phaser, curatorFramework, listServers, serviceSpec, m_cluster, consumerThreadSleepTime), "ConsumerThread-1");
+
+        Thread producerThread = new Thread(new ProducerThread(phaser, curatorFramework, producerThreadSleepTime, appProperties.environmentName), "ProducerThread-1");
+        Thread availabilityThread = new Thread(new AvailabilityThread(phaser, curatorFramework, availabilityThreadSleepTime, appProperties.environmentName), "AvailabilityThread-1");
+        Thread consumerThread = new Thread(new ConsumerThread(phaser, curatorFramework, listServers, serviceSpec, appProperties.environmentName, consumerThreadSleepTime), "ConsumerThread-1");
 
         leaderInfoThread.start();
         producerThread.start();

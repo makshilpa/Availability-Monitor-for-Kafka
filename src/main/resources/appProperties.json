@@ -1,4 +1,5 @@
 {
+  "environmentName": "localhost",
   "sqlConnectionString": "jdbc:sqlserver://test;DatabaseName=test;lockTimeout=30000;loginTimeout=30000;user=test;password=test",
   "reportKafkaIPAvailability": true,
   "reportKafkaGTMAvailability": true,
@@ -19,7 +20,6 @@
   "availabilityThreadSleepTime": 60000,
   "leaderInfoThreadSleepTime": 300000,
   "producerThreadSleepTime": 60000,
-  "consumerThreadSleepTime": 300000,
   "reportInterval": 0,
   "consumerPartitionTimeoutInSeconds": 30,
   "consumerTopicTimeoutInSeconds": 60

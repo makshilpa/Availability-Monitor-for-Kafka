@@ -28,6 +28,24 @@
           <target>1.7</target>
         </configuration>
       </plugin>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+          <executions>
+            <execution>
+              <phase>package</phase>
+              <goals><goal>single</goal></goals>
+	      <configuration>
+              	<archive>
+                  <manifest>
+                    <mainClass>com.microsoft.kafkaavailability.App</mainClass>
+                  </manifest>
+                </archive>
+                <descriptor>src/assembly/assembly.xml</descriptor>
+                <finalName>${project.artifactId}-${project.version}</finalName>
+              </configuration>
+            </execution>
+          </executions>
+       </plugin>
     </plugins>
   </build>
 
