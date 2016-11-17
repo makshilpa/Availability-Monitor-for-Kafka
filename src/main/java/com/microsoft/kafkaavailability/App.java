@@ -38,9 +38,7 @@ public class App {
 
     static int m_sleepTime = 30000;
     static String m_cluster = "localhost";
-
     static AppProperties appProperties;
-    static String m_cluster;
     static MetaDataManagerProperties metaDataProperties;
     static List<String> listServers;
 
