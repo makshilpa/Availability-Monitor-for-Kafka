@@ -111,6 +111,9 @@ public class MetricsFactory implements IMetricsFactory {
         ScheduledReporter consoleReporter = ReporterUtils.createConsoleReporter(metricRegistry, config);
         reporters.add(new ConfiguredReporter(consoleReporter, period * 1000));
 
+        ScheduledReporter graphiteReporter = ReporterUtils.createGraphiteReporter(metricRegistry, config);
+        reporters.add(new ConfiguredReporter(graphiteReporter, period * 1000));
+
         // Install the logging listener (probably a configuration item)
         metricRegistry.addListener(new LoggingMetricListener());
 

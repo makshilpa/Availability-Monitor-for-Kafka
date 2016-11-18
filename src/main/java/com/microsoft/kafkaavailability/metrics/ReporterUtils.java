@@ -6,9 +6,13 @@
 package com.microsoft.kafkaavailability.metrics;
 
 import com.codahale.metrics.ConsoleReporter;
+import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.ScheduledReporter;
+import com.codahale.metrics.graphite.Graphite;
+import com.codahale.metrics.graphite.GraphiteReporter;
 
+import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
  
@@ -35,6 +39,25 @@ public class ReporterUtils {
 
         return ConsoleReporter.forRegistry(metricRegistry).convertRatesTo(getRatesUnit(config))
                 .convertDurationsTo(getDurationUnit(config)).build();
+    }
+
+    /**
+     * Create a new graphite reporter
+     *
+     * @param metricRegistry the registry to report on
+     * @param config         the configuration map (see {@link MetricsFactory})
+     * @return the reporter instance
+     */
+    public static ScheduledReporter createGraphiteReporter(MetricRegistry metricRegistry, Map<String, Object> config) {
+
+        Graphite graphite = new Graphite(new InetSocketAddress((String)config.get("graphiteServerString"), 2003));
+
+        return GraphiteReporter.forRegistry(metricRegistry)
+                .prefixedWith((String)config.get("graphiteMetricPrefix"))
+                .convertRatesTo(getRatesUnit(config))
+                .convertDurationsTo(getDurationUnit(config))
+                .filter(MetricFilter.ALL)
+                .build(graphite);
     }
 
     private static TimeUnit getDurationUnit(Map<String, Object> config) {

@@ -37,7 +37,6 @@ public class App {
     final static Logger m_logger = LoggerFactory.getLogger(App.class);
 
     static int m_sleepTime = 30000;
-    static String m_cluster = "localhost";
     static AppProperties appProperties;
     static MetaDataManagerProperties metaDataProperties;
     static List<String> listServers;
@@ -67,10 +66,12 @@ public class App {
             CommandLine line = parser.parse(options, args);
             int howManyRuns;
 
-            if((appProperties.environmentName == null || appProperties.environmentName.equals("")) && line.hasOption("cluster")) {
-                appProperties.environmentName = line.getOptionValue("cluster");
-            } else {
-                throw new IllegalArgumentException("cluster name must be provided either on the command line or in the app properties");
+            if(appProperties.environmentName == null || appProperties.environmentName.equals("")) {
+                if (line.hasOption("cluster")) {
+                    appProperties.environmentName = line.getOptionValue("cluster");
+                } else {
+                    throw new IllegalArgumentException("cluster name must be provided either on the command line or in the app properties");
+                }
             }
 
             MDC.put("cluster", appProperties.environmentName);
