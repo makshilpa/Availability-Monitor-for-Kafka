@@ -37,7 +37,6 @@ public class App {
     final static Logger m_logger = LoggerFactory.getLogger(App.class);
 
     static int m_sleepTime = 30000;
-
     static AppProperties appProperties;
     static MetaDataManagerProperties metaDataProperties;
     static List<String> listServers;
