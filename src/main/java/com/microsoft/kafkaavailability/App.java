@@ -66,7 +66,7 @@ public class App {
             CommandLine line = parser.parse(options, args);
             int howManyRuns;
 
-            if((appProperties.environmentName == null || appProperties.environmentName.equals(""))) {
+            if(appProperties.environmentName == null || appProperties.environmentName.equals("")) {
                 if(line.hasOption("cluster")) {
                     appProperties.environmentName = line.getOptionValue("cluster");   
                 } else {
