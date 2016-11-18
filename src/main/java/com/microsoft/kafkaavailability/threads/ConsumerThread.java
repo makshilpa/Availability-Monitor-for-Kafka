@@ -8,8 +8,11 @@ package com.microsoft.kafkaavailability.threads;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.SlidingWindowReservoir;
-import com.google.gson.Gson;
-import com.microsoft.kafkaavailability.*;
+import com.microsoft.kafkaavailability.IMetaDataManager;
+import com.microsoft.kafkaavailability.IPropertiesManager;
+import com.microsoft.kafkaavailability.MetaDataManager;
+import com.microsoft.kafkaavailability.MetaDataManagerException;
+import com.microsoft.kafkaavailability.PropertiesManager;
 import com.microsoft.kafkaavailability.discovery.CommonUtils;
 import com.microsoft.kafkaavailability.metrics.AvailabilityGauge;
 import com.microsoft.kafkaavailability.metrics.MetricNameEncoded;
@@ -26,7 +29,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.Phaser;
+import java.util.concurrent.TimeUnit;
 
 import static com.microsoft.kafkaavailability.discovery.Constants.DEFAULT_ELAPSED_TIME;
 
@@ -142,9 +150,9 @@ public class ConsumerThread implements Runnable {
         final SlidingWindowReservoir consumerLatencyWindow = new SlidingWindowReservoir(numPartitionsConsumers);
         Histogram histogramConsumerLatency = new Histogram(consumerLatencyWindow);
         MetricNameEncoded consumerLatency = new MetricNameEncoded("Consumer.Latency", "all");
-        if (!metrics.getNames().contains(new Gson().toJson(consumerLatency))) {
+        if (!metrics.getNames().contains(consumerLatency.fullPath)) {
             if (appProperties.sendConsumerLatency) {
-                metrics.register(new Gson().toJson(consumerLatency), histogramConsumerLatency);
+                metrics.register(consumerLatency.fullPath, histogramConsumerLatency);
             }
         }
         for (kafka.javaapi.TopicMetadata item : allTopicMetadata) {
@@ -155,9 +163,9 @@ public class ConsumerThread implements Runnable {
             final SlidingWindowReservoir topicLatency = new SlidingWindowReservoir(item.partitionsMetadata().size());
             Histogram histogramConsumerTopicLatency = new Histogram(topicLatency);
             MetricNameEncoded consumerTopicLatency = new MetricNameEncoded("Consumer.Topic.Latency", item.topic());
-            if (!metrics.getNames().contains(new Gson().toJson(consumerTopicLatency))) {
+            if (!metrics.getNames().contains(consumerTopicLatency.fullPath)) {
                 if (appProperties.sendConsumerTopicLatency)
-                    metrics.register(new Gson().toJson(consumerTopicLatency), histogramConsumerTopicLatency);
+                    metrics.register(consumerTopicLatency.fullPath, histogramConsumerTopicLatency);
             }
 
             //Get ExecutorService from Executors utility class, thread pool size is number of available processors
@@ -208,11 +216,11 @@ public class ConsumerThread implements Runnable {
                         isTopicAvailable = false;
                     }
                 }
-                MetricNameEncoded consumerPartitionLatency = new MetricNameEncoded("Consumer.Partition.Latency", item.topic() + "##" + key);
+                MetricNameEncoded consumerPartitionLatency = new MetricNameEncoded("Consumer.Partition.Latency", item.topic() + "." + key);
                 Histogram histogramConsumerPartitionLatency = new Histogram(new SlidingWindowReservoir(1));
-                if (!metrics.getNames().contains(new Gson().toJson(consumerPartitionLatency))) {
+                if (!metrics.getNames().contains(consumerPartitionLatency.fullPath)) {
                     if (appProperties.sendConsumerPartitionLatency)
-                        metrics.register(new Gson().toJson(consumerPartitionLatency), histogramConsumerPartitionLatency);
+                        metrics.register(consumerPartitionLatency.fullPath, histogramConsumerPartitionLatency);
                 }
                 histogramConsumerPartitionLatency.update(elapsedTime);
                 histogramConsumerTopicLatency.update(elapsedTime);
@@ -220,16 +228,16 @@ public class ConsumerThread implements Runnable {
             }
             if (appProperties.sendConsumerTopicAvailability) {
                 MetricNameEncoded consumerTopicAvailability = new MetricNameEncoded("Consumer.Topic.Availability", item.topic());
-                if (!metrics.getNames().contains(new Gson().toJson(consumerTopicAvailability))) {
-                    metrics.register(new Gson().toJson(consumerTopicAvailability), new AvailabilityGauge(response.keySet().size(), response.keySet().size() - topicConsumerFailCount));
+                if (!metrics.getNames().contains(consumerTopicAvailability.fullPath)) {
+                    metrics.register(consumerTopicAvailability.fullPath, new AvailabilityGauge(response.keySet().size(), response.keySet().size() - topicConsumerFailCount));
                 }
             }
         }
 
         if (appProperties.sendConsumerAvailability) {
             MetricNameEncoded consumerAvailability = new MetricNameEncoded("Consumer.Availability", "all");
-            if (!metrics.getNames().contains(new Gson().toJson(consumerAvailability))) {
-                metrics.register(new Gson().toJson(consumerAvailability), new AvailabilityGauge(consumerTryCount, consumerTryCount - consumerFailCount));
+            if (!metrics.getNames().contains(consumerAvailability.fullPath)) {
+                metrics.register(consumerAvailability.fullPath, new AvailabilityGauge(consumerTryCount, consumerTryCount - consumerFailCount));
             }
         }
 

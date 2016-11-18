@@ -10,11 +10,13 @@ import java.util.concurrent.TimeUnit;
 public class MetricNameEncoded {
     public String name;
     public String tag;
+    public String fullPath;
     public long clock;
 
     public MetricNameEncoded(String name, String tag) {
         this.name = name;
         this.tag = tag;
+        this.fullPath = this.name + "." + this.tag;
         this.clock = System.currentTimeMillis();
     }
 

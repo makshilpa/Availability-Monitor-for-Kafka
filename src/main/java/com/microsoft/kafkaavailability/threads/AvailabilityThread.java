@@ -8,8 +8,13 @@ package com.microsoft.kafkaavailability.threads;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.SlidingWindowReservoir;
-import com.google.gson.Gson;
-import com.microsoft.kafkaavailability.*;
+import com.microsoft.kafkaavailability.IMetaDataManager;
+import com.microsoft.kafkaavailability.IProducer;
+import com.microsoft.kafkaavailability.IPropertiesManager;
+import com.microsoft.kafkaavailability.MetaDataManager;
+import com.microsoft.kafkaavailability.MetaDataManagerException;
+import com.microsoft.kafkaavailability.Producer;
+import com.microsoft.kafkaavailability.PropertiesManager;
 import com.microsoft.kafkaavailability.discovery.CommonUtils;
 import com.microsoft.kafkaavailability.metrics.AvailabilityGauge;
 import com.microsoft.kafkaavailability.metrics.MetricNameEncoded;
@@ -130,17 +135,17 @@ public class AvailabilityThread implements Runnable {
         final SlidingWindowReservoir gtmAvailabilityLatencyWindow = new SlidingWindowReservoir(windowSize);
         Histogram histogramGTMAvailabilityLatency = new Histogram(gtmAvailabilityLatencyWindow);
         MetricNameEncoded gtmAvailabilityLatency = new MetricNameEncoded("KafkaGTMIP.Availability.Latency", "all");
-        if (!metrics.getNames().contains(new Gson().toJson(gtmAvailabilityLatency))) {
+        if (!metrics.getNames().contains(gtmAvailabilityLatency.fullPath)) {
             if (appProperties.sendGTMAvailabilityLatency && !CommonUtils.isNullorEmptyorWhitespace(appProperties.kafkaGTMIP))
-                metrics.register(new Gson().toJson(gtmAvailabilityLatency), histogramGTMAvailabilityLatency);
+                metrics.register(gtmAvailabilityLatency.fullPath, histogramGTMAvailabilityLatency);
         }
 
         final SlidingWindowReservoir IPAvailabilityLatencyWindow = new SlidingWindowReservoir(windowSize);
         Histogram histogramIPAvailabilityLatency = new Histogram(IPAvailabilityLatencyWindow);
         MetricNameEncoded ipAvailabilityLatency = new MetricNameEncoded("KafkaIP.Availability.Latency", "all");
-        if (!metrics.getNames().contains(new Gson().toJson(ipAvailabilityLatency))) {
+        if (!metrics.getNames().contains(ipAvailabilityLatency.fullPath)) {
             if (appProperties.sendIPAvailabilityLatency && !CommonUtils.isNullorEmptyorWhitespace(appProperties.kafkaClusterIP))
-                metrics.register(new Gson().toJson(ipAvailabilityLatency), histogramIPAvailabilityLatency);
+                metrics.register(ipAvailabilityLatency.fullPath, histogramIPAvailabilityLatency);
         }
 
         m_logger.info("Starting KafkaIP prop check." + appProperties.reportKafkaIPAvailability);
@@ -193,15 +198,15 @@ public class AvailabilityThread implements Runnable {
         if (appProperties.reportKafkaIPAvailability && !CommonUtils.isNullorEmptyorWhitespace(appProperties.kafkaClusterIP)) {
             m_logger.info("About to report kafkaClusterIPAvailability-- TryCount:" + clusterIPStatusTryCount + " FailCount:" + clusterIPStatusFailCount);
             MetricNameEncoded kafkaClusterIPAvailability = new MetricNameEncoded("KafkaIP.Availability", "all");
-            if (!metrics.getNames().contains(new Gson().toJson(kafkaClusterIPAvailability))) {
-                metrics.register(new Gson().toJson(kafkaClusterIPAvailability), new AvailabilityGauge(clusterIPStatusTryCount, clusterIPStatusTryCount - clusterIPStatusFailCount));
+            if (!metrics.getNames().contains(kafkaClusterIPAvailability.fullPath)) {
+                metrics.register(kafkaClusterIPAvailability.fullPath, new AvailabilityGauge(clusterIPStatusTryCount, clusterIPStatusTryCount - clusterIPStatusFailCount));
             }
         }
         if (appProperties.reportKafkaGTMAvailability && !CommonUtils.isNullorEmptyorWhitespace(appProperties.kafkaGTMIP)) {
             m_logger.info("About to report kafkaGTMIPAvailability-- TryCount:" + gtmIPStatusTryCount + " FailCount:" + gtmIPStatusFailCount);
             MetricNameEncoded kafkaGTMIPAvailability = new MetricNameEncoded("KafkaGTMIP.Availability", "all");
-            if (!metrics.getNames().contains(new Gson().toJson(kafkaGTMIPAvailability))) {
-                metrics.register(new Gson().toJson(kafkaGTMIPAvailability), new AvailabilityGauge(gtmIPStatusTryCount, gtmIPStatusTryCount - gtmIPStatusFailCount));
+            if (!metrics.getNames().contains(kafkaGTMIPAvailability.fullPath)) {
+                metrics.register(kafkaGTMIPAvailability.fullPath, new AvailabilityGauge(gtmIPStatusTryCount, gtmIPStatusTryCount - gtmIPStatusFailCount));
             }
         }
 
