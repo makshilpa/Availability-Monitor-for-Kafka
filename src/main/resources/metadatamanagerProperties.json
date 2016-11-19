@@ -1,22 +1,23 @@
 {
   "brokerList": [
-    "broker1:port",
-    "broker2:port"
+    "vs-test-ds.redfintest.com:9092"
   ],
   "whiteListTopics":[
-    "testtopic"
+    "^dev\.listing.*"
   ],
   "blackListTopics":[
-    "__consumer_offsets"
+    "__consumer_offsets",
+    "localStateChangeLog",
+    "__samza"
   ],
   "canaryTestTopics":[
-    "testtopic"
+    "kafka.canary.test"
   ],
   "replicationFactor": 3,
   "soTimeout": 100000,
   "bufferSize": 65536,
   "clientId": "test",
-  "zooKeeperHosts": "1.1.1.1:2181,2.2.2.2:2181",
+  "zooKeeperHosts": "test-zookeeper-1.redfintest.com:2181,test-zookeeper-2.redfintest.com:2181,test-zookeeper-3.redfintest.com:2181",
   "useZooKeeper": true,
   "acceptable_exception_count":5
 }

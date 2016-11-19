@@ -100,11 +100,11 @@ public class MetricsFactory implements IMetricsFactory {
 
         IPropertiesManager appPropertiesManager = new PropertiesManager<AppProperties>("appProperties.json", AppProperties.class);
         AppProperties appProperties = (AppProperties) appPropertiesManager.getProperties();
-        String sqlConnectionString = appProperties.sqlConnectionString;
+        String graphiteServerString = appProperties.graphiteServerString;
         Integer period = appProperties.reportInterval;
 
         Map<String, Object> config = new HashMap<>();
-        config.put("sqlConnectionString", sqlConnectionString);
+        config.put("graphiteServerString", graphiteServerString);
         config.put("period", period);
         config.put("cluster", clusterName);
 
