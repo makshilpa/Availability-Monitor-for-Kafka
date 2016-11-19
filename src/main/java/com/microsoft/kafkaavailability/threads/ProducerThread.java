@@ -164,7 +164,7 @@ public class ProducerThread implements Runnable {
 
             for (kafka.javaapi.PartitionMetadata part : item.partitionsMetadata()) {
                 m_logger.debug("Writing to Topic: {}; Partition: {};", item.topic(), part.partitionId());
-                MetricNameEncoded producerPartitionLatency = new MetricNameEncoded("Producer.Partition.Latency", item.topic() + "##" + part.partitionId());
+                MetricNameEncoded producerPartitionLatency = new MetricNameEncoded("Producer.Partition.Latency", item.topic() + "." + part.partitionId());
                 Histogram histogramProducerPartitionLatency = new Histogram(new SlidingWindowReservoir(1));
                 if (!metrics.getNames().contains(producerPartitionLatency.fullPath)) {
                     if (appProperties.sendProducerPartitionLatency)
