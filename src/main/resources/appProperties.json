@@ -1,7 +1,7 @@
 {
   "environmentName": "localhost",
   "sqlConnectionString": "jdbc:sqlserver://test;DatabaseName=test;lockTimeout=30000;loginTimeout=30000;user=test;password=test",
-  "graphiteServerString": "stats.redfintest.com",
+  "graphiteServerString": "1.1.1.1", /* Add actual graphite server name */
   "graphiteMetricPrefix": "test.kafka.canarytest",
   "reportKafkaIPAvailability": false,
   "reportKafkaGTMAvailability": false,

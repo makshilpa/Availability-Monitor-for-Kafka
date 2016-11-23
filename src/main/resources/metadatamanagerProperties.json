@@ -1,9 +1,9 @@
 {
   "brokerList": [
-    "vs-test-ds.redfintest.com:9092"
+    "broker1:9092" /* Add actual broker name */
   ],
   "whiteListTopics":[
-    "^dev\.listing.*"
+    "^dev\.listing.*" /* Add regex for other environments */
   ],
   "blackListTopics":[
     "__consumer_offsets",
@@ -17,7 +17,7 @@
   "soTimeout": 100000,
   "bufferSize": 65536,
   "clientId": "test",
-  "zooKeeperHosts": "test-zookeeper-1.redfintest.com:2181,test-zookeeper-2.redfintest.com:2181,test-zookeeper-3.redfintest.com:2181",
+  "zooKeeperHosts": "1.1.1.1:2181,2.2.2.2:2181,3.3.3.3:2181", /* Change this to actual values */
   "useZooKeeper": true,
   "acceptable_exception_count":5
 }
