@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Arrays;
 import java.util.concurrent.Phaser;
 
 import static com.microsoft.kafkaavailability.discovery.Constants.DEFAULT_ELAPSED_TIME;
@@ -113,9 +114,11 @@ public class AvailabilityThread implements Runnable {
         int failureThreshold = 10;
 
         List<String> gtmList = new ArrayList<String>();
-        if (!appProperties.kafkaGTMIP.isEmpty()) {
-            gtmList.addAll(appProperties.kafkaGTMIP);
+        String[] gtmArray = appProperties.kafkaGTMIPList.split(",");
+        if(!(gtmArray.length == 0)) {
+            gtmList.addAll(Arrays.asList(gtmArray));
         }
+
 
         //This is full list of topics
         List<TopicMetadata> totalTopicMetadata = metaDataManager.getAllTopicPartition();
@@ -136,7 +139,7 @@ public class AvailabilityThread implements Runnable {
         Histogram histogramGTMAvailabilityLatency = new Histogram(gtmAvailabilityLatencyWindow);
         MetricNameEncoded gtmAvailabilityLatency = new MetricNameEncoded("KafkaGTMIP.Availability.Latency", "all");
         if (!metrics.getNames().contains(new Gson().toJson(gtmAvailabilityLatency))) {
-            if (appProperties.sendGTMAvailabilityLatency && !appProperties.kafkaGTMIP.isEmpty())
+            if (appProperties.sendGTMAvailabilityLatency && !gtmList.isEmpty())
                 metrics.register(new Gson().toJson(gtmAvailabilityLatency), histogramGTMAvailabilityLatency);
         }
 
@@ -172,7 +175,7 @@ public class AvailabilityThread implements Runnable {
         }
 
         m_logger.info("done with VIP prop check.");
-        if (appProperties.reportKafkaGTMAvailability && !appProperties.kafkaGTMIP.isEmpty()) {
+        if (appProperties.reportKafkaGTMAvailability && !gtmList.isEmpty()) {
             m_logger.info("About to report kafkaGTMIPAvailability-- TryCount:" + gtmIPStatusTryCount + " FailCount:" + gtmIPStatusFailCount);
             MetricNameEncoded kafkaGTMIPAvailability = new MetricNameEncoded("KafkaGTMIP.Availability", "all");
             if (!metrics.getNames().contains(new Gson().toJson(kafkaGTMIPAvailability))) {
