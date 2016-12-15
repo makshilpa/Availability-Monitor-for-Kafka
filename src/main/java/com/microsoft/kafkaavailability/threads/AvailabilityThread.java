@@ -105,12 +105,17 @@ public class AvailabilityThread implements Runnable {
         IPropertiesManager appPropertiesManager = new PropertiesManager<AppProperties>("appProperties.json", AppProperties.class);
         AppProperties appProperties = (AppProperties) appPropertiesManager.getProperties();
 
-        int clusterIPStatusTryCount = 0, gtmIPStatusTryCount = 0;
-        int clusterIPStatusFailCount = 0, gtmIPStatusFailCount = 0;
+        int gtmIPStatusTryCount = 0;
+        int gtmIPStatusFailCount = 0;
         long startTime, endTime;
         int numMessages = 100;
         int windowSize = 0;
         int failureThreshold = 10;
+
+        List<String> gtmList = new ArrayList<String>();
+        if (!appProperties.kafkaGTMIP.isEmpty()) {
+            gtmList.addAll(appProperties.kafkaGTMIP);
+        }
 
         //This is full list of topics
         List<TopicMetadata> totalTopicMetadata = metaDataManager.getAllTopicPartition();
@@ -125,79 +130,48 @@ public class AvailabilityThread implements Runnable {
                 }
         }
 
-        windowSize = numMessages * ((whiteListTopicMetadata.size() > 0) ? whiteListTopicMetadata.size() : 1);
+        windowSize = gtmList.size() * numMessages * ((whiteListTopicMetadata.size() > 0) ? (gtmList.size() * whiteListTopicMetadata.size()) : 1);
 
         final SlidingWindowReservoir gtmAvailabilityLatencyWindow = new SlidingWindowReservoir(windowSize);
         Histogram histogramGTMAvailabilityLatency = new Histogram(gtmAvailabilityLatencyWindow);
         MetricNameEncoded gtmAvailabilityLatency = new MetricNameEncoded("KafkaGTMIP.Availability.Latency", "all");
         if (!metrics.getNames().contains(new Gson().toJson(gtmAvailabilityLatency))) {
-            if (appProperties.sendGTMAvailabilityLatency && !CommonUtils.isNullorEmptyorWhitespace(appProperties.kafkaGTMIP))
+            if (appProperties.sendGTMAvailabilityLatency && !appProperties.kafkaGTMIP.isEmpty())
                 metrics.register(new Gson().toJson(gtmAvailabilityLatency), histogramGTMAvailabilityLatency);
         }
 
-        final SlidingWindowReservoir IPAvailabilityLatencyWindow = new SlidingWindowReservoir(windowSize);
-        Histogram histogramIPAvailabilityLatency = new Histogram(IPAvailabilityLatencyWindow);
-        MetricNameEncoded ipAvailabilityLatency = new MetricNameEncoded("KafkaIP.Availability.Latency", "all");
-        if (!metrics.getNames().contains(new Gson().toJson(ipAvailabilityLatency))) {
-            if (appProperties.sendIPAvailabilityLatency && !CommonUtils.isNullorEmptyorWhitespace(appProperties.kafkaClusterIP))
-                metrics.register(new Gson().toJson(ipAvailabilityLatency), histogramIPAvailabilityLatency);
-        }
-
-        m_logger.info("Starting KafkaIP prop check." + appProperties.reportKafkaIPAvailability);
         m_logger.info("Starting KafkaGTM (VIP) prop check." + appProperties.reportKafkaGTMAvailability);
 
-        for (kafka.javaapi.TopicMetadata item : whiteListTopicMetadata) {
-            for (int i = 0; i < numMessages; i++) {
-                if (appProperties.reportKafkaIPAvailability && !CommonUtils.isNullorEmptyorWhitespace(appProperties.kafkaClusterIP)) {
-                    startTime = System.currentTimeMillis();
-                    try {
-                        clusterIPStatusTryCount++;
-                        producer.SendCanaryToKafkaIP(appProperties.kafkaClusterIP, item.topic(), false);
-                        endTime = System.currentTimeMillis();
-                    } catch (Exception e) {
-                        clusterIPStatusFailCount++;
-                        m_logger.error("ClusterIPStatus -- Error Writing to Topic: {}; Exception: {}", item.topic(), e);
-                        endTime = System.currentTimeMillis() + DEFAULT_ELAPSED_TIME;
+        for (String gtm : gtmList) {
+            for (kafka.javaapi.TopicMetadata item : whiteListTopicMetadata) {
+                m_logger.info("Posting to Topic: {} using GTM: {};", item.topic(), gtm);
+                int tryCount = 0, failCount = 0;
+                for (int i = 0; i < numMessages; i++) {
+                    if (appProperties.reportKafkaGTMAvailability) {
+                        startTime = System.currentTimeMillis();
+                        try {
+                            tryCount++;
+                            producer.SendCanaryToKafkaIP(gtm, item.topic(), false);
+                            endTime = System.currentTimeMillis();
+                        } catch (Exception e) {
+                            failCount++;
+                            m_logger.error("GTM -- Error Writing to Topic: {} using GTM: {}; Exception: {}", item.topic(), gtm, e);
+                            endTime = System.currentTimeMillis() + DEFAULT_ELAPSED_TIME;
+                        }
+                        histogramGTMAvailabilityLatency.update(endTime - startTime);
                     }
-                    histogramIPAvailabilityLatency.update(endTime - startTime);
+                    if (failCount >= 10) {
+                        m_logger.error("GTM: {} has failed more than {} times. Giving up!!!.", gtm, failureThreshold);
+                        break;
+                    }
                 }
-                if (clusterIPStatusFailCount >= failureThreshold) {
-                    m_logger.error("ClusterIPStatus: {} has failed more than {} times. Giving up!!!.", appProperties.kafkaClusterIP, failureThreshold);
-                    break;
-                }
+                gtmIPStatusTryCount = gtmIPStatusTryCount + tryCount;
+                gtmIPStatusFailCount = gtmIPStatusFailCount + failCount;
             }
         }
 
-        for (kafka.javaapi.TopicMetadata item : whiteListTopicMetadata) {
-            for (int i = 0; i < numMessages; i++) {
-                if (appProperties.reportKafkaGTMAvailability && !CommonUtils.isNullorEmptyorWhitespace(appProperties.kafkaGTMIP)) {
-                    startTime = System.currentTimeMillis();
-                    try {
-                        gtmIPStatusTryCount++;
-                        producer.SendCanaryToKafkaIP(appProperties.kafkaGTMIP, item.topic(), false);
-                        endTime = System.currentTimeMillis();
-                    } catch (Exception e) {
-                        gtmIPStatusFailCount++;
-                        m_logger.error("GTMIPStatus -- Error Writing to Topic: {}; Exception: {}", item.topic(), e);
-                        endTime = System.currentTimeMillis() + DEFAULT_ELAPSED_TIME;
-                    }
-                    histogramGTMAvailabilityLatency.update(endTime - startTime);
-                }
-                if (gtmIPStatusFailCount >= 10) {
-                    m_logger.error("GTMIPStatus: {} has failed more than {} times. Giving up!!!.", appProperties.kafkaGTMIP, failureThreshold);
-                    break;
-                }
-            }
-        }
         m_logger.info("done with VIP prop check.");
-        if (appProperties.reportKafkaIPAvailability && !CommonUtils.isNullorEmptyorWhitespace(appProperties.kafkaClusterIP)) {
-            m_logger.info("About to report kafkaClusterIPAvailability-- TryCount:" + clusterIPStatusTryCount + " FailCount:" + clusterIPStatusFailCount);
-            MetricNameEncoded kafkaClusterIPAvailability = new MetricNameEncoded("KafkaIP.Availability", "all");
-            if (!metrics.getNames().contains(new Gson().toJson(kafkaClusterIPAvailability))) {
-                metrics.register(new Gson().toJson(kafkaClusterIPAvailability), new AvailabilityGauge(clusterIPStatusTryCount, clusterIPStatusTryCount - clusterIPStatusFailCount));
-            }
-        }
-        if (appProperties.reportKafkaGTMAvailability && !CommonUtils.isNullorEmptyorWhitespace(appProperties.kafkaGTMIP)) {
+        if (appProperties.reportKafkaGTMAvailability && !appProperties.kafkaGTMIP.isEmpty()) {
             m_logger.info("About to report kafkaGTMIPAvailability-- TryCount:" + gtmIPStatusTryCount + " FailCount:" + gtmIPStatusFailCount);
             MetricNameEncoded kafkaGTMIPAvailability = new MetricNameEncoded("KafkaGTMIP.Availability", "all");
             if (!metrics.getNames().contains(new Gson().toJson(kafkaGTMIPAvailability))) {
