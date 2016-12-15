@@ -162,6 +162,7 @@ public class AvailabilityThread implements Runnable {
                     }
                     if (failCount >= 10) {
                         m_logger.error("GTM: {} has failed more than {} times. Giving up!!!.", gtm, failureThreshold);
+                        tryCount = failCount = 100;
                         break;
                     }
                 }
