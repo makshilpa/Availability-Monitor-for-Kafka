@@ -14,7 +14,7 @@ public class AppProperties
     public String environmentName;
     public String sqlConnectionString;
     public boolean reportKafkaGTMAvailability;
-    public List<String> kafkaGTMIP;
+    public String kafkaGTMIP;
     public boolean sendProducerAvailability;
     public boolean sendConsumerAvailability;
     public boolean sendProducerTopicAvailability;
