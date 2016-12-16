@@ -114,7 +114,7 @@ public class AvailabilityThread implements Runnable {
         int failureThreshold = 10;
 
         List<String> gtmList = new ArrayList<String>();
-        String[] gtmArray = appProperties.kafkaGTMIPList.split(",");
+        String[] gtmArray = appProperties.kafkaGTMIP.split(",");
         if(!(gtmArray.length == 0)) {
             gtmList.addAll(Arrays.asList(gtmArray));
         }
