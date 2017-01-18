@@ -12,10 +12,8 @@ import java.util.List;
 public class AppProperties
 {
     public String environmentName;
-    public String sqlConnectionString;
     public String graphiteServerString;
     public String graphiteMetricPrefix;
-    public boolean reportKafkaIPAvailability;
     public boolean reportKafkaGTMAvailability;
     public String kafkaGTMIP;
     public boolean sendProducerAvailability;
