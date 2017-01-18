@@ -67,13 +67,13 @@ public class App {
             int howManyRuns;
 
             if(appProperties.environmentName == null || appProperties.environmentName.equals("")) {
-                if (line.hasOption("cluster")) {
-                    appProperties.environmentName = line.getOptionValue("cluster");
+                if(line.hasOption("cluster")) {
+                    appProperties.environmentName = line.getOptionValue("cluster");   
                 } else {
                     throw new IllegalArgumentException("cluster name must be provided either on the command line or in the app properties");
                 }
-            }
-
+            } 
+            
             MDC.put("cluster", appProperties.environmentName);
 
             MDC.put("computerName", computerName);

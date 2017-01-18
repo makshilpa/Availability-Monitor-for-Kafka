@@ -7,6 +7,8 @@
  */
 package com.microsoft.kafkaavailability.properties;
 
+import java.util.List;
+
 public class AppProperties
 {
     public String environmentName;
@@ -15,14 +17,12 @@ public class AppProperties
     public String graphiteMetricPrefix;
     public boolean reportKafkaIPAvailability;
     public boolean reportKafkaGTMAvailability;
-    public String kafkaClusterIP;
     public String kafkaGTMIP;
     public boolean sendProducerAvailability;
     public boolean sendConsumerAvailability;
     public boolean sendProducerTopicAvailability;
     public boolean sendConsumerTopicAvailability;
     public boolean sendProducerLatency;
-    public boolean sendIPAvailabilityLatency;
     public boolean sendGTMAvailabilityLatency;
     public boolean sendConsumerLatency;
     public boolean sendProducerTopicLatency;
