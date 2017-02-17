@@ -15,8 +15,8 @@ import com.microsoft.kafkaavailability.MetaDataManagerException;
 import com.microsoft.kafkaavailability.PropertiesManager;
 import com.microsoft.kafkaavailability.discovery.CommonUtils;
 import com.microsoft.kafkaavailability.metrics.AvailabilityGauge;
+import com.microsoft.kafkaavailability.metrics.GraphiteMetricsFactory;
 import com.microsoft.kafkaavailability.metrics.MetricNameEncoded;
-import com.microsoft.kafkaavailability.metrics.MetricsFactory;
 import com.microsoft.kafkaavailability.properties.AppProperties;
 import com.microsoft.kafkaavailability.properties.ConsumerProperties;
 import com.microsoft.kafkaavailability.properties.MetaDataManagerProperties;
@@ -46,7 +46,7 @@ public class ConsumerThread implements Runnable {
     List<String> m_listServers;
     String m_serviceSpec;
     String m_clusterName;
-    MetricsFactory metricsFactory;
+    GraphiteMetricsFactory metricsFactory;
     long m_threadSleepTime;
 
     public ConsumerThread(Phaser phaser, CuratorFramework curatorFramework, List<String> listServers, String serviceSpec, String clusterName, long threadSleepTime) {
@@ -71,7 +71,7 @@ public class ConsumerThread implements Runnable {
                     + "Phase-" + m_phaser.getPhase());
 
             try {
-                metricsFactory = new MetricsFactory();
+                metricsFactory = new GraphiteMetricsFactory();
                 metricsFactory.configure(m_clusterName);
 
                 metricsFactory.start();
@@ -150,9 +150,9 @@ public class ConsumerThread implements Runnable {
         final SlidingWindowReservoir consumerLatencyWindow = new SlidingWindowReservoir(numPartitionsConsumers);
         Histogram histogramConsumerLatency = new Histogram(consumerLatencyWindow);
         MetricNameEncoded consumerLatency = new MetricNameEncoded("Consumer.Latency", "all");
-        if (!metrics.getNames().contains(consumerLatency.fullPath)) {
+        if (!metrics.getNames().contains(metricsFactory.getQualifiedMetricName(consumerLatency))) {
             if (appProperties.sendConsumerLatency) {
-                metrics.register(consumerLatency.fullPath, histogramConsumerLatency);
+                metrics.register(metricsFactory.getQualifiedMetricName(consumerLatency), histogramConsumerLatency);
             }
         }
         for (kafka.javaapi.TopicMetadata item : allTopicMetadata) {
@@ -163,9 +163,9 @@ public class ConsumerThread implements Runnable {
             final SlidingWindowReservoir topicLatency = new SlidingWindowReservoir(item.partitionsMetadata().size());
             Histogram histogramConsumerTopicLatency = new Histogram(topicLatency);
             MetricNameEncoded consumerTopicLatency = new MetricNameEncoded("Consumer.Topic.Latency", item.topic());
-            if (!metrics.getNames().contains(consumerTopicLatency.fullPath)) {
+            if (!metrics.getNames().contains(metricsFactory.getQualifiedMetricName(consumerTopicLatency))) {
                 if (appProperties.sendConsumerTopicLatency)
-                    metrics.register(consumerTopicLatency.fullPath, histogramConsumerTopicLatency);
+                    metrics.register(metricsFactory.getQualifiedMetricName(consumerTopicLatency), histogramConsumerTopicLatency);
             }
 
             //Get ExecutorService from Executors utility class, thread pool size is number of available processors
@@ -218,9 +218,9 @@ public class ConsumerThread implements Runnable {
                 }
                 MetricNameEncoded consumerPartitionLatency = new MetricNameEncoded("Consumer.Partition.Latency", item.topic() + "." + key);
                 Histogram histogramConsumerPartitionLatency = new Histogram(new SlidingWindowReservoir(1));
-                if (!metrics.getNames().contains(consumerPartitionLatency.fullPath)) {
+                if (!metrics.getNames().contains(metricsFactory.getQualifiedMetricName(consumerPartitionLatency))) {
                     if (appProperties.sendConsumerPartitionLatency)
-                        metrics.register(consumerPartitionLatency.fullPath, histogramConsumerPartitionLatency);
+                        metrics.register(metricsFactory.getQualifiedMetricName(consumerPartitionLatency), histogramConsumerPartitionLatency);
                 }
                 histogramConsumerPartitionLatency.update(elapsedTime);
                 histogramConsumerTopicLatency.update(elapsedTime);
@@ -228,16 +228,16 @@ public class ConsumerThread implements Runnable {
             }
             if (appProperties.sendConsumerTopicAvailability) {
                 MetricNameEncoded consumerTopicAvailability = new MetricNameEncoded("Consumer.Topic.Availability", item.topic());
-                if (!metrics.getNames().contains(consumerTopicAvailability.fullPath)) {
-                    metrics.register(consumerTopicAvailability.fullPath, new AvailabilityGauge(response.keySet().size(), response.keySet().size() - topicConsumerFailCount));
+                if (!metrics.getNames().contains(metricsFactory.getQualifiedMetricName(consumerTopicAvailability))) {
+                    metrics.register(metricsFactory.getQualifiedMetricName(consumerTopicAvailability), new AvailabilityGauge(response.keySet().size(), response.keySet().size() - topicConsumerFailCount));
                 }
             }
         }
 
         if (appProperties.sendConsumerAvailability) {
             MetricNameEncoded consumerAvailability = new MetricNameEncoded("Consumer.Availability", "all");
-            if (!metrics.getNames().contains(consumerAvailability.fullPath)) {
-                metrics.register(consumerAvailability.fullPath, new AvailabilityGauge(consumerTryCount, consumerTryCount - consumerFailCount));
+            if (!metrics.getNames().contains(metricsFactory.getQualifiedMetricName(consumerAvailability))) {
+                metrics.register(metricsFactory.getQualifiedMetricName(consumerAvailability), new AvailabilityGauge(consumerTryCount, consumerTryCount - consumerFailCount));
             }
         }
 

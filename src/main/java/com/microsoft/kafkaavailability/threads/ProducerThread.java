@@ -17,8 +17,8 @@ import com.microsoft.kafkaavailability.Producer;
 import com.microsoft.kafkaavailability.PropertiesManager;
 import com.microsoft.kafkaavailability.discovery.CommonUtils;
 import com.microsoft.kafkaavailability.metrics.AvailabilityGauge;
+import com.microsoft.kafkaavailability.metrics.GraphiteMetricsFactory;
 import com.microsoft.kafkaavailability.metrics.MetricNameEncoded;
-import com.microsoft.kafkaavailability.metrics.MetricsFactory;
 import com.microsoft.kafkaavailability.properties.AppProperties;
 import com.microsoft.kafkaavailability.properties.MetaDataManagerProperties;
 import com.microsoft.kafkaavailability.properties.ProducerProperties;
@@ -39,7 +39,7 @@ public class ProducerThread implements Runnable {
     final static Logger m_logger = LoggerFactory.getLogger(ProducerThread.class);
     Phaser m_phaser;
     CuratorFramework m_curatorFramework;
-    MetricsFactory metricsFactory;
+    GraphiteMetricsFactory metricsFactory;
     long m_threadSleepTime;
     String m_clusterName;
 
@@ -64,7 +64,7 @@ public class ProducerThread implements Runnable {
                     + "Phase-" + m_phaser.getPhase());
 
             try {
-                metricsFactory = new MetricsFactory();
+                metricsFactory = new GraphiteMetricsFactory();
                 metricsFactory.configure(m_clusterName);
 
                 metricsFactory.start();
@@ -143,9 +143,9 @@ public class ProducerThread implements Runnable {
         Histogram histogramProducerLatency = new Histogram(producerLatencyWindow);
 
         MetricNameEncoded producerLatency = new MetricNameEncoded("Producer.Latency", "all");
-        if (!metrics.getNames().contains(producerLatency.fullPath)) {
+        if (!metrics.getNames().contains(metricsFactory.getQualifiedMetricName(producerLatency))) {
             if (appProperties.sendProducerLatency)
-                metrics.register(producerLatency.fullPath, histogramProducerLatency);
+                metrics.register(metricsFactory.getQualifiedMetricName(producerLatency), histogramProducerLatency);
         }
 
         m_logger.info("start topic partition loop");
@@ -157,18 +157,18 @@ public class ProducerThread implements Runnable {
             final SlidingWindowReservoir topicLatency = new SlidingWindowReservoir(item.partitionsMetadata().size());
             Histogram histogramProducerTopicLatency = new Histogram(topicLatency);
             MetricNameEncoded producerTopicLatency = new MetricNameEncoded("Producer.Topic.Latency", item.topic());
-            if (!metrics.getNames().contains(producerTopicLatency.fullPath)) {
+            if (!metrics.getNames().contains(metricsFactory.getQualifiedMetricName(producerTopicLatency))) {
                 if (appProperties.sendProducerTopicLatency)
-                    metrics.register(producerTopicLatency.fullPath, histogramProducerTopicLatency);
+                    metrics.register(metricsFactory.getQualifiedMetricName(producerTopicLatency), histogramProducerTopicLatency);
             }
 
             for (kafka.javaapi.PartitionMetadata part : item.partitionsMetadata()) {
                 m_logger.debug("Writing to Topic: {}; Partition: {};", item.topic(), part.partitionId());
                 MetricNameEncoded producerPartitionLatency = new MetricNameEncoded("Producer.Partition.Latency", item.topic() + "." + part.partitionId());
                 Histogram histogramProducerPartitionLatency = new Histogram(new SlidingWindowReservoir(1));
-                if (!metrics.getNames().contains(producerPartitionLatency.fullPath)) {
+                if (!metrics.getNames().contains(metricsFactory.getQualifiedMetricName(producerPartitionLatency))) {
                     if (appProperties.sendProducerPartitionLatency)
-                        metrics.register(producerPartitionLatency.fullPath, histogramProducerPartitionLatency);
+                        metrics.register(metricsFactory.getQualifiedMetricName(producerPartitionLatency), histogramProducerPartitionLatency);
                 }
                 startTime = System.currentTimeMillis();
                 try {
@@ -190,15 +190,15 @@ public class ProducerThread implements Runnable {
             }
             if (appProperties.sendProducerTopicAvailability) {
                 MetricNameEncoded producerTopicAvailability = new MetricNameEncoded("Producer.Topic.Availability", item.topic());
-                if (!metrics.getNames().contains(producerTopicAvailability.fullPath)) {
-                    metrics.register(producerTopicAvailability.fullPath, new AvailabilityGauge(item.partitionsMetadata().size(), item.partitionsMetadata().size() - topicProducerFailCount));
+                if (!metrics.getNames().contains(metricsFactory.getQualifiedMetricName(producerTopicAvailability))) {
+                    metrics.register(metricsFactory.getQualifiedMetricName(producerTopicAvailability), new AvailabilityGauge(item.partitionsMetadata().size(), item.partitionsMetadata().size() - topicProducerFailCount));
                 }
             }
         }
         if (appProperties.sendProducerAvailability) {
             MetricNameEncoded producerAvailability = new MetricNameEncoded("Producer.Availability", "all");
-            if (!metrics.getNames().contains(producerAvailability.fullPath)) {
-                metrics.register(producerAvailability.fullPath, new AvailabilityGauge(producerTryCount, producerTryCount - producerFailCount));
+            if (!metrics.getNames().contains(metricsFactory.getQualifiedMetricName(producerAvailability))) {
+                metrics.register(metricsFactory.getQualifiedMetricName(producerAvailability), new AvailabilityGauge(producerTryCount, producerTryCount - producerFailCount));
             }
         }
         producer.close();

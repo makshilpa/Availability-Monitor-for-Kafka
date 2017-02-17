@@ -28,4 +28,10 @@ public interface IMetricsFactory {
   * @throws Exception
   */
  void stop() throws Exception;
+
+ /**
+  * Gets the metric name to be used for registering
+  * @param metricName Name of the metric to register
+  */
+ String getQualifiedMetricName(MetricNameEncoded metricName);
 }
