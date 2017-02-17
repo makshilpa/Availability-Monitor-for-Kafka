@@ -216,7 +216,7 @@ public class ConsumerThread implements Runnable {
                         isTopicAvailable = false;
                     }
                 }
-                MetricNameEncoded consumerPartitionLatency = new MetricNameEncoded("Consumer.Partition.Latency", item.topic() + "." + key);
+                MetricNameEncoded consumerPartitionLatency = new MetricNameEncoded("Consumer.Partition.Latency", item.topic() + metricsFactory.partitionNameSepartor + key);
                 Histogram histogramConsumerPartitionLatency = new Histogram(new SlidingWindowReservoir(1));
                 if (!metrics.getNames().contains(metricsFactory.getQualifiedMetricName(consumerPartitionLatency))) {
                     if (appProperties.sendConsumerPartitionLatency)

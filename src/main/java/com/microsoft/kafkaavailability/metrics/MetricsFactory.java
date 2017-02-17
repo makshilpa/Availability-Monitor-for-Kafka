@@ -29,6 +29,8 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class MetricsFactory implements IMetricsFactory {
+    public final String partitionNameSepartor = "##";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(MetricsFactory.class);
     //private static final MetricsFactory INSTANCE = new MetricsFactory();
 

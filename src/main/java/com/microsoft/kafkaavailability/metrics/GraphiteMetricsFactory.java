@@ -28,6 +28,8 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class GraphiteMetricsFactory implements IMetricsFactory {
+    public final String partitionNameSepartor = ".";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(MetricsFactory.class);
 
     private final MetricRegistry metricRegistry;
