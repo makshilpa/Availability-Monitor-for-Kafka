@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class MetricsFactory implements IMetricsFactory {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(MetricsFactory.class);
     //private static final MetricsFactory INSTANCE = new MetricsFactory();
 
@@ -114,7 +113,6 @@ public class MetricsFactory implements IMetricsFactory {
         IPropertiesManager appPropertiesManager = new PropertiesManager<AppProperties>("appProperties.json", AppProperties.class);
         AppProperties appProperties = (AppProperties) appPropertiesManager.getProperties();
         String sqlConnectionString = appProperties.sqlConnectionString;
-        String graphiteServerString = appProperties.graphiteServerString;
         Integer period = appProperties.reportInterval;
 
         Map<String, Object> config = new HashMap<>();
