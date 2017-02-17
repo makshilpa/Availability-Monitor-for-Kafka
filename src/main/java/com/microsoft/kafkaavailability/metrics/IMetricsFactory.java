@@ -7,6 +7,8 @@ package com.microsoft.kafkaavailability.metrics;
 
 public interface IMetricsFactory {
 
+ public final String partitionNameSepartor = "##";
+
  /**
   * Configure the component
   *
