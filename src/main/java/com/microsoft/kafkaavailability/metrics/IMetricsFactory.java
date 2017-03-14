@@ -7,6 +7,8 @@ package com.microsoft.kafkaavailability.metrics;
 
 public interface IMetricsFactory {
 
+ public final String partitionNameSepartor = "##";
+
  /**
   * Configure the component
   *
@@ -28,4 +30,10 @@ public interface IMetricsFactory {
   * @throws Exception
   */
  void stop() throws Exception;
+
+ /**
+  * Gets the metric name to be used for registering
+  * @param metricName Name of the metric to register
+  */
+ String getQualifiedMetricName(MetricNameEncoded metricName);
 }

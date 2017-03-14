@@ -13,7 +13,6 @@ import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.ScheduledReporter;
 import com.codahale.metrics.Timer;
-import com.google.gson.Gson;
 import com.microsoft.kafkaavailability.IPropertiesManager;
 import com.microsoft.kafkaavailability.PropertiesManager;
 import com.microsoft.kafkaavailability.properties.AppProperties;
@@ -28,9 +27,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class MetricsFactory implements IMetricsFactory {
+public class GraphiteMetricsFactory implements IMetricsFactory {
+    public final String partitionNameSepartor = ".";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(MetricsFactory.class);
-    //private static final MetricsFactory INSTANCE = new MetricsFactory();
 
     private final MetricRegistry metricRegistry;
     private List<ConfiguredReporter> reporters = Collections.synchronizedList(new LinkedList<ConfiguredReporter>());
@@ -84,7 +84,7 @@ public class MetricsFactory implements IMetricsFactory {
      * Singleton access functions, but with package level access only for
      * testing.
      */
-    public MetricsFactory() {
+    public GraphiteMetricsFactory() {
         this(new MetricRegistry());
     }
 
@@ -94,7 +94,7 @@ public class MetricsFactory implements IMetricsFactory {
      *
      * @param registry the registry for use.
      */
-    public MetricsFactory(MetricRegistry registry) {
+    public GraphiteMetricsFactory(MetricRegistry registry) {
         metricRegistry = registry;
     }
 
@@ -112,19 +112,20 @@ public class MetricsFactory implements IMetricsFactory {
 
         IPropertiesManager appPropertiesManager = new PropertiesManager<AppProperties>("appProperties.json", AppProperties.class);
         AppProperties appProperties = (AppProperties) appPropertiesManager.getProperties();
-        String sqlConnectionString = appProperties.sqlConnectionString;
+        String graphiteServerString = appProperties.graphiteServerString;
+        String graphiteMetricPrefix = appProperties.graphiteMetricPrefix;
         Integer period = appProperties.reportInterval;
 
         Map<String, Object> config = new HashMap<>();
-        config.put("sqlConnectionString", sqlConnectionString);
+        config.put("graphiteServerString", graphiteServerString);
+        config.put("graphiteMetricPrefix", graphiteMetricPrefix);
         config.put("period", period);
-        config.put("cluster", clusterName);
 
         ScheduledReporter consoleReporter = ReporterUtils.createConsoleReporter(metricRegistry, config);
         reporters.add(new ConfiguredReporter(consoleReporter, period * 1000));
 
-        ScheduledReporter sqlReporter = ReporterUtils.createSqlReporter(metricRegistry, config);
-        reporters.add(new ConfiguredReporter(sqlReporter, period * 1000));
+        ScheduledReporter graphiteReporter = ReporterUtils.createGraphiteReporter(metricRegistry, config);
+        reporters.add(new ConfiguredReporter(graphiteReporter, period * 1000));
 
         // Install the logging listener (probably a configuration item)
         metricRegistry.addListener(new LoggingMetricListener());
@@ -302,6 +303,6 @@ public class MetricsFactory implements IMetricsFactory {
      * @param metricName Name of the metric to register
      */
     public String getQualifiedMetricName(MetricNameEncoded metricName) {
-        return new Gson().toJson(metricName);
+        return metricName.name + "." + metricName.tag;
     }
 }

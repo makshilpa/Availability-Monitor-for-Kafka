@@ -1,22 +1,23 @@
 {
   "brokerList": [
-    "broker1:port",
-    "broker2:port"
+    "broker1:9092" /* Add actual broker name */
   ],
   "whiteListTopics":[
-    "testtopic"
+    "^dev\.listing.*" /* Add regex for other environments */
   ],
   "blackListTopics":[
-    "__consumer_offsets"
+    "__consumer_offsets",
+    "localStateChangeLog",
+    "__samza"
   ],
   "canaryTestTopics":[
-    "testtopic"
+    "kafka.canary.test"
   ],
   "replicationFactor": 3,
   "soTimeout": 100000,
   "bufferSize": 65536,
   "clientId": "test",
-  "zooKeeperHosts": "1.1.1.1:2181,2.2.2.2:2181",
+  "zooKeeperHosts": "1.1.1.1:2181,2.2.2.2:2181,3.3.3.3:2181", /* Change this to actual values */
   "useZooKeeper": true,
   "acceptable_exception_count":5
 }

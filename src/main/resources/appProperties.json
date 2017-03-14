@@ -1,7 +1,9 @@
 {
   "environmentName": "localhost",
-  "sqlConnectionString": "jdbc:sqlserver://test;DatabaseName=test;lockTimeout=30000;loginTimeout=30000;user=test;password=test",
-  "reportKafkaGTMAvailability": true,
+  "sqlConnectionString": "localhost",
+  "graphiteServerString": "1.1.1.1", /* Add actual graphite server name */
+  "graphiteMetricPrefix": "test.kafka.canarytest",
+  "reportKafkaGTMAvailability": false,
   "kafkaGTMIP":"https://myTestEndpoint001.trafficmanager.net?topic=,https://myTestEndpoint002.trafficmanager.net?topic=",
   "sendProducerAvailability": true,
   "sendConsumerAvailability": true,
@@ -9,7 +11,7 @@
   "sendConsumerTopicAvailability": true,
   "sendProducerLatency": true,
   "sendConsumerLatency": true,
-  "sendGTMAvailabilityLatency": true,
+  "sendGTMAvailabilityLatency": false,
   "sendProducerTopicLatency": true,
   "sendConsumerTopicLatency": true,
   "sendProducerPartitionLatency": true,

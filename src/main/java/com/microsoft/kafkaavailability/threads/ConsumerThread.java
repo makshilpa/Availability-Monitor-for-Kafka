@@ -8,12 +8,15 @@ package com.microsoft.kafkaavailability.threads;
 import com.codahale.metrics.Histogram;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.SlidingWindowReservoir;
-import com.google.gson.Gson;
-import com.microsoft.kafkaavailability.*;
+import com.microsoft.kafkaavailability.IMetaDataManager;
+import com.microsoft.kafkaavailability.IPropertiesManager;
+import com.microsoft.kafkaavailability.MetaDataManager;
+import com.microsoft.kafkaavailability.MetaDataManagerException;
+import com.microsoft.kafkaavailability.PropertiesManager;
 import com.microsoft.kafkaavailability.discovery.CommonUtils;
 import com.microsoft.kafkaavailability.metrics.AvailabilityGauge;
+import com.microsoft.kafkaavailability.metrics.GraphiteMetricsFactory;
 import com.microsoft.kafkaavailability.metrics.MetricNameEncoded;
-import com.microsoft.kafkaavailability.metrics.MetricsFactory;
 import com.microsoft.kafkaavailability.properties.AppProperties;
 import com.microsoft.kafkaavailability.properties.ConsumerProperties;
 import com.microsoft.kafkaavailability.properties.MetaDataManagerProperties;
@@ -26,7 +29,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.Phaser;
+import java.util.concurrent.TimeUnit;
 
 import static com.microsoft.kafkaavailability.discovery.Constants.DEFAULT_ELAPSED_TIME;
 
@@ -38,7 +46,7 @@ public class ConsumerThread implements Runnable {
     List<String> m_listServers;
     String m_serviceSpec;
     String m_clusterName;
-    MetricsFactory metricsFactory;
+    GraphiteMetricsFactory metricsFactory;
     long m_threadSleepTime;
 
     public ConsumerThread(Phaser phaser, CuratorFramework curatorFramework, List<String> listServers, String serviceSpec, String clusterName, long threadSleepTime) {
@@ -63,7 +71,7 @@ public class ConsumerThread implements Runnable {
                     + "Phase-" + m_phaser.getPhase());
 
             try {
-                metricsFactory = new MetricsFactory();
+                metricsFactory = new GraphiteMetricsFactory();
                 metricsFactory.configure(m_clusterName);
 
                 metricsFactory.start();
@@ -142,9 +150,9 @@ public class ConsumerThread implements Runnable {
         final SlidingWindowReservoir consumerLatencyWindow = new SlidingWindowReservoir(numPartitionsConsumers);
         Histogram histogramConsumerLatency = new Histogram(consumerLatencyWindow);
         MetricNameEncoded consumerLatency = new MetricNameEncoded("Consumer.Latency", "all");
-        if (!metrics.getNames().contains(new Gson().toJson(consumerLatency))) {
+        if (!metrics.getNames().contains(metricsFactory.getQualifiedMetricName(consumerLatency))) {
             if (appProperties.sendConsumerLatency) {
-                metrics.register(new Gson().toJson(consumerLatency), histogramConsumerLatency);
+                metrics.register(metricsFactory.getQualifiedMetricName(consumerLatency), histogramConsumerLatency);
             }
         }
         for (kafka.javaapi.TopicMetadata item : allTopicMetadata) {
@@ -155,9 +163,9 @@ public class ConsumerThread implements Runnable {
             final SlidingWindowReservoir topicLatency = new SlidingWindowReservoir(item.partitionsMetadata().size());
             Histogram histogramConsumerTopicLatency = new Histogram(topicLatency);
             MetricNameEncoded consumerTopicLatency = new MetricNameEncoded("Consumer.Topic.Latency", item.topic());
-            if (!metrics.getNames().contains(new Gson().toJson(consumerTopicLatency))) {
+            if (!metrics.getNames().contains(metricsFactory.getQualifiedMetricName(consumerTopicLatency))) {
                 if (appProperties.sendConsumerTopicLatency)
-                    metrics.register(new Gson().toJson(consumerTopicLatency), histogramConsumerTopicLatency);
+                    metrics.register(metricsFactory.getQualifiedMetricName(consumerTopicLatency), histogramConsumerTopicLatency);
             }
 
             //Get ExecutorService from Executors utility class, thread pool size is number of available processors
@@ -208,11 +216,11 @@ public class ConsumerThread implements Runnable {
                         isTopicAvailable = false;
                     }
                 }
-                MetricNameEncoded consumerPartitionLatency = new MetricNameEncoded("Consumer.Partition.Latency", item.topic() + "##" + key);
+                MetricNameEncoded consumerPartitionLatency = new MetricNameEncoded("Consumer.Partition.Latency", item.topic() + metricsFactory.partitionNameSepartor + key);
                 Histogram histogramConsumerPartitionLatency = new Histogram(new SlidingWindowReservoir(1));
-                if (!metrics.getNames().contains(new Gson().toJson(consumerPartitionLatency))) {
+                if (!metrics.getNames().contains(metricsFactory.getQualifiedMetricName(consumerPartitionLatency))) {
                     if (appProperties.sendConsumerPartitionLatency)
-                        metrics.register(new Gson().toJson(consumerPartitionLatency), histogramConsumerPartitionLatency);
+                        metrics.register(metricsFactory.getQualifiedMetricName(consumerPartitionLatency), histogramConsumerPartitionLatency);
                 }
                 histogramConsumerPartitionLatency.update(elapsedTime);
                 histogramConsumerTopicLatency.update(elapsedTime);
@@ -220,16 +228,16 @@ public class ConsumerThread implements Runnable {
             }
             if (appProperties.sendConsumerTopicAvailability) {
                 MetricNameEncoded consumerTopicAvailability = new MetricNameEncoded("Consumer.Topic.Availability", item.topic());
-                if (!metrics.getNames().contains(new Gson().toJson(consumerTopicAvailability))) {
-                    metrics.register(new Gson().toJson(consumerTopicAvailability), new AvailabilityGauge(response.keySet().size(), response.keySet().size() - topicConsumerFailCount));
+                if (!metrics.getNames().contains(metricsFactory.getQualifiedMetricName(consumerTopicAvailability))) {
+                    metrics.register(metricsFactory.getQualifiedMetricName(consumerTopicAvailability), new AvailabilityGauge(response.keySet().size(), response.keySet().size() - topicConsumerFailCount));
                 }
             }
         }
 
         if (appProperties.sendConsumerAvailability) {
             MetricNameEncoded consumerAvailability = new MetricNameEncoded("Consumer.Availability", "all");
-            if (!metrics.getNames().contains(new Gson().toJson(consumerAvailability))) {
-                metrics.register(new Gson().toJson(consumerAvailability), new AvailabilityGauge(consumerTryCount, consumerTryCount - consumerFailCount));
+            if (!metrics.getNames().contains(metricsFactory.getQualifiedMetricName(consumerAvailability))) {
+                metrics.register(metricsFactory.getQualifiedMetricName(consumerAvailability), new AvailabilityGauge(consumerTryCount, consumerTryCount - consumerFailCount));
             }
         }
 
